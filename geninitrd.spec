@@ -17,7 +17,7 @@ Requires:	genromfs
 Prereq:		rc-scripts >= 0.2.7
 Requires:	mktemp >= 1.5-8
 Obsoletes:	mkinitrd
-ExclusiveArch:	%{ix86} sparc sparc64 ia64
+ExclusiveArch:	%{ix86} ppc sparc sparc64 ia64
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
