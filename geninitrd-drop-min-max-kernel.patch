@@ -1,0 +1,18 @@
+diff -urN geninitrd-3865.org/geninitrd geninitrd-3865/geninitrd
+--- geninitrd-3865.org/geninitrd	2004-04-13 11:25:26.043654240 +0200
++++ geninitrd-3865/geninitrd	2004-04-13 11:25:53.154532760 +0200
+@@ -508,13 +508,7 @@
+ END {
+ 	print "module=" module "\nmin_kernel=" min_kernel "\nmax_kernel=\"" max_kernel "\"\n";
+ }' /usr/share/pci-database/ide.pci`
+-			    if [ -n "$module" ]; then
+-			    	gomin=1
+-			    	gomax=1
+-			    	[ -n "$min_kernel" -a "$pack_version_long" -lt "$min_kernel" ] && gomin=0
+-			    	[ -n "$max_kernel" -a "$pack_version_long" -gt "$max_kernel" ] && gomax=0
+-			    	[ "$gomax" -ne 0 -a "$gomin" -ne 0 ] && idemodules="$idemodules $module"
+-			    fi
++			    [ -n "$module" ] && idemodules="$idemodules $module"
+ 	    		done
+ 			if is_yes "$(awk ' /ide=reverse/ { print "yes" } ' /proc/cmdline)"; then
+ 			    	new_idemodules=""
