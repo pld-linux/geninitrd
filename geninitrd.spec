@@ -26,7 +26,7 @@ BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
-Mkinitrd creates filesystem images for use as initial ramdisk (initrd)
+Geninitrd creates filesystem images for use as initial ramdisk (initrd)
 images. These ramdisk images are often used to preload the block
 device modules (SCSI or RAID) needed to access the root filesystem.
 
@@ -41,7 +41,7 @@ filesystem. The geninitrd program creates such a ramdisk using
 information found in the /etc/modules.conf file.
 
 %description -l pl
-Mkinitrd s³u¿y do tworzenia obrazu systemu plikowego u¿ywanego jako
+Geninitrd s³u¿y do tworzenia obrazu systemu plikowego u¿ywanego jako
 inicjalny ramdysk (initrd), z którego przy starcie systemu s± ³adowane
 modu³y kernela z obs³ug± urz±dzeñ których obs³uga nie jest
 wkompilowana w kernel. Zazwyczaj modu³ami ³adowanymi z inicjalnego
