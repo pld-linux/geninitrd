@@ -53,6 +53,7 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
+
 %build
 mv Makefile Makefile.sav
 sed s/"VERSION=1.2"/"VERSION=%{version}"/g Makefile.sav >Makefile
@@ -60,6 +61,7 @@ rm Makefile.sav
 
 %install
 rm -rf $RPM_BUILD_ROOT
+
 %{__make} BUILDROOT=$RPM_BUILD_ROOT install
 
 %clean
