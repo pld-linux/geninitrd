@@ -9,15 +9,12 @@ Group(pl):	Narzêdzia/System
 Source0:	ftp://ftp.pld.org.pl/software/geninitrd/%{name}-%{version}.tar.gz
 Requires:	awk
 Requires:	sh-utils
-Requires:	e2fsprogs
 Requires:	fileutils
 Requires:	mount
 Requires:	bsp
 Requires:	gzip
 Requires:	tar
 Requires:	genromfs
-Requires:	/sbin/insmod.static
-Requires:	trash
 Prereq:		rc-scripts >= 0.2.7
 Requires:	mktemp >= 1.5-8
 Obsoletes:	mkinitrd
