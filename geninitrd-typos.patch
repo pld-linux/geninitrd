@@ -1,0 +1,12 @@
+diff -urN geninitrd-3865.org/geninitrd geninitrd-3865/geninitrd
+--- geninitrd-3865.org/geninitrd	2004-04-23 23:12:25.568085304 +0200
++++ geninitrd-3865/geninitrd	2004-04-23 23:12:44.720173744 +0200
+@@ -979,7 +979,7 @@
+ 	fi
+ 
+ 	if [ -x /sbin/initrd-mdassemble ] ; then
+-    	    do_mdasseble=1
++    	    do_mdassemble=1
+ 	    inst /sbin/initrd-mdassemble "$MNTIMAGE/bin/mdassemble"
+ 	else
+ 	    do_mdassemble=0
