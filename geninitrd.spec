@@ -1,7 +1,7 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	2.21
+Version:	2.22
 Release:	1
 License:	GPL
 Group:		Applications/System
