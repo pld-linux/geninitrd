@@ -2,20 +2,19 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzedzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
 Version:	1.0
-Release:	0
+Release:	1
 License:	GPL
 Group:		Utilities/System
 Group(pl):	Narzêdzia/System
-Source0:	%{name}-%{version}.tar.gz
-Requires:	losetup 
-Requires:	e2fsprogs 
-Requires:	/bin/sh 
-Requires:	fileutils 
-Requires:	grep 
-Requires:	mount 
-Requires:	gzip 
-Requires:	tar 
-Requires:	genromfs 
+Source0:	ftp://ftp.pld.org.pl/software/geninitrd/%{name}-%{version}.tar.gz
+Requires:	losetup
+Requires:	e2fsprogs
+Requires:	fileutils
+Requires:	grep
+Requires:	mount
+Requires:	gzip
+Requires:	tar
+Requires:	genromfs
 Requires:	/sbin/insmod.static
 Requires:	/bin/ash.static
 Requires:	rc-scripts >= 0.2.7
@@ -66,5 +65,5 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %attr(755,root,root) /sbin/geninitrd
-/etc/sysconfig/geninitrd
+%config(noreplace) /etc/sysconfig/geninitrd
 %{_mandir}/man8/*
