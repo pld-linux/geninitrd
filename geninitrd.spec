@@ -7,16 +7,16 @@ License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	5fd878e9d3abac1f24cea513408f68f3
-Requires:       awk
-Requires:       bsp >= 0.3.1
-Requires:       fileutils
-Requires:       genromfs
-Requires:       gzip
+Requires:	awk
+Requires:	bsp >= 0.3.1
+Requires:	fileutils
+Requires:	genromfs
+Requires:	gzip
 Requires:	mktemp >= 1.5-8
-Requires:       mount
-Requires:       pci-database
-Requires:       sh-utils
-Requires:       tar
+Requires:	mount
+Requires:	pci-database
+Requires:	sh-utils
+Requires:	tar
 Prereq:		rc-scripts >= 0.2.7
 Obsoletes:	mkinitrd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
