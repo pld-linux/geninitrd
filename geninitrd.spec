@@ -2,7 +2,7 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzedzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
 Version:	1.1
-Release:	1
+Release:	2
 License:	GPL
 Group:		Utilities/System
 Group(pl):	Narzêdzia/System
@@ -18,6 +18,7 @@ Requires:	genromfs
 Requires:	/sbin/insmod.static
 Requires:	/bin/ash.static
 Requires:	rc-scripts >= 0.2.7
+Requires:	mktemp >= 1.5-8
 Obsoletes:	mkinitrd
 ExclusiveArch:	%{ix86} sparc sparc64 ia64
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
