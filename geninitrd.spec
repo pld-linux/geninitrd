@@ -1,28 +1,34 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	2.22
-Release:	1
+Version:	4605
+Release:	1.1
 License:	GPL
 Group:		Applications/System
-Source0:	ftp://ftp.pld-linux.org/software/geninitrd/%{name}-%{version}.tar.gz
-# Source0-md5:	d097f58c989fca534696c04033ad6afc
+Source0:	ftp://ftp.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
+# Source0-md5:	9f15923a273abec0644749b3db533fff
+Patch0:		%{name}-en_xml.patch
+BuildRequires:	xmlto >= 0:0.0.18-1
+PreReq:		rc-scripts >= 0.2.7
 Requires:	awk
-Requires:	sh-utils
+Requires:	busybox-initrd >= 1.00-0.rc3.2
 Requires:	fileutils
-Requires:	mount
-Requires:	bsp >= 0.2.2
-Requires:	gzip
-Requires:	tar
 Requires:	genromfs
-Prereq:		rc-scripts >= 0.2.7
+Requires:	gzip
+# without this softraid installations of PLD fail
+Requires:	mdadm-initrd >= 1.4.0-3
 Requires:	mktemp >= 1.5-8
+Requires:	mount
+Requires:	pci-database >= 0.4
+Requires:	sh-utils
+Requires:	tar
 Obsoletes:	mkinitrd
-ExclusiveArch:	%{ix86} ppc sparc sparc64 ia64
+#Conflicts:	mdadm-initrd < 1.4.0-3
+BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
-Mkinitrd creates filesystem images for use as initial ramdisk (initrd)
+Geninitrd creates filesystem images for use as initial ramdisk (initrd)
 images. These ramdisk images are often used to preload the block
 device modules (SCSI or RAID) needed to access the root filesystem.
 
@@ -37,7 +43,7 @@ filesystem. The geninitrd program creates such a ramdisk using
 information found in the /etc/modules.conf file.
 
 %description -l pl
-Mkinitrd s³u¿y do tworzenia obrazu systemu plikowego u¿ywanego jako
+Geninitrd s³u¿y do tworzenia obrazu systemu plikowego u¿ywanego jako
 inicjalny ramdysk (initrd), z którego przy starcie systemu s± ³adowane
 modu³y kernela z obs³ug± urz±dzeñ których obs³uga nie jest
 wkompilowana w kernel. Zazwyczaj modu³ami ³adowanymi z inicjalnego
@@ -55,17 +61,21 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 %setup -q
 
 %build
+rm geninitrd.8
+%{__make} geninitrd.8
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} BUILDROOT=$RPM_BUILD_ROOT install
+%{__make} install \
+	BUILDROOT=$RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
+%doc ChangeLog
 %attr(755,root,root) /sbin/geninitrd
-%config(noreplace) /etc/sysconfig/geninitrd
+%config(noreplace) %verify(not md5 size mtime) /etc/sysconfig/geninitrd
 %{_mandir}/man8/*
