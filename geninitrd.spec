@@ -1,22 +1,23 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	2.30
+Version:	2.34
 Release:	1
 License:	GPL
 Group:		Applications/System
-Source0:	ftp://ftp.kernel.pl/pub/People/arekm/software/%{name}-%{version}.tar.gz
-# Source0-md5:	cc3fa1c7289e87754cca527652f55a11
-Requires:	awk
-Requires:	sh-utils
-Requires:	fileutils
-Requires:	mount
-Requires:	bsp >= 0.3.1
-Requires:	gzip
-Requires:	tar
-Requires:	genromfs
-Prereq:		rc-scripts >= 0.2.7
+Source0:	%{name}-%{version}.tar.gz
+# Source0-md5:	0806eb7d6a0a461e12d6b41f4dcf5a73
+Requires:       awk
+Requires:       bsp >= 0.3.1
+Requires:       fileutils
+Requires:       genromfs
+Requires:       gzip
 Requires:	mktemp >= 1.5-8
+Requires:       mount
+Requires:       pci-database
+Requires:       sh-utils
+Requires:       tar
+Prereq:		rc-scripts >= 0.2.7
 Obsoletes:	mkinitrd
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
