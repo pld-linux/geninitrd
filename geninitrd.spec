@@ -7,6 +7,7 @@ License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp.pld-linux.org/people/wiget/geninitrd/%{name}-%{version}.tar.gz
 # Source0-md5:	95fc2c388d22a3ea88b6ca4a1a1dffc5
+PreReq:		rc-scripts >= 0.2.7
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.pre5.0
 Requires:	fileutils
@@ -17,7 +18,6 @@ Requires:	mount
 Requires:	pci-database >= 0.0.2
 Requires:	sh-utils
 Requires:	tar
-Prereq:		rc-scripts >= 0.2.7
 Obsoletes:	mkinitrd
 Conflicts:	mdadm-initrd < 1.4.0-3
 BuildArch:	noarch
@@ -56,12 +56,11 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 %prep
 %setup -q
 
-%build
-
 %install
 rm -rf $RPM_BUILD_ROOT
 
-%{__make} BUILDROOT=$RPM_BUILD_ROOT install
+%{__make} install \
+	BUILDROOT=$RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
