@@ -1,8 +1,8 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzedzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	2.0
-Release:	2
+Version:	2.1
+Release:	1
 License:	GPL
 Group:		Utilities/System
 Group(pl):	Narzêdzia/System
@@ -55,9 +55,9 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 %setup -q
 
 %build
-mv Makefile Makefile.sav
-sed s/"VERSION=1.2"/"VERSION=%{version}"/g Makefile.sav >Makefile
-rm Makefile.sav
+#mv Makefile Makefile.sav
+#sed s/"VERSION=1.2"/"VERSION=%{version}"/g Makefile.sav >Makefile
+#rm Makefile.sav
 
 %install
 rm -rf $RPM_BUILD_ROOT
