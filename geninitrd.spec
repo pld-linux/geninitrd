@@ -6,6 +6,7 @@ Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp.pld.org.pl/software/geninitrd/%{name}-%{version}.tar.gz
+# Source0-md5: fed147fc76cfb22a6cf81b3a164e4b7c
 Requires:	awk
 Requires:	sh-utils
 Requires:	fileutils
