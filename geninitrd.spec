@@ -19,6 +19,7 @@ Requires:	sh-utils
 Requires:	tar
 Prereq:		rc-scripts >= 0.2.7
 Obsoletes:	mkinitrd
+BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
