@@ -5,8 +5,6 @@ Version:	2.16
 Release:	1
 License:	GPL
 Group:		Applications/System
-Group(de):	Applikationen/System
-Group(pl):	Aplikacje/System
 Source0:	ftp://ftp.pld.org.pl/software/geninitrd/%{name}-%{version}.tar.gz
 Requires:	awk
 Requires:	sh-utils
