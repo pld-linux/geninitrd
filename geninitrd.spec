@@ -18,7 +18,7 @@ Requires:	tar
 Requires:	genromfs
 Requires:	/sbin/insmod.static
 Requires:	trash
-Requires:	rc-scripts >= 0.2.7
+Prereq:		rc-scripts >= 0.2.7
 Requires:	mktemp >= 1.5-8
 Obsoletes:	mkinitrd
 ExclusiveArch:	%{ix86} sparc sparc64 ia64
