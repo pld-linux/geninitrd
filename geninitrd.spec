@@ -5,7 +5,8 @@ Version:	2.22
 Release:	1
 License:	GPL
 Group:		Applications/System
-Source0:	ftp://ftp.pld.org.pl/software/geninitrd/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp.pld-linux.org/software/geninitrd/%{name}-%{version}.tar.gz
+# Source0-md5:	d097f58c989fca534696c04033ad6afc
 Requires:	awk
 Requires:	sh-utils
 Requires:	fileutils
