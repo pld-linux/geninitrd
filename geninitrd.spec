@@ -6,7 +6,7 @@ Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
-# Source0-md5:	4c8d2cf6a17f69703a237d750b45d788
+# Source0-md5:	d72b1a1a9e95db0d4b58ed3eedf90890
 PreReq:		rc-scripts >= 0.2.7
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.pre5.0
