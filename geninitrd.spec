@@ -1,0 +1,70 @@
+Summary:	Creates an initial ramdisk image for preloading modules
+Summary(pl):	Narzedzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
+Name:		geninitrd
+Version:	1.0
+Release:	0
+License:	GPL
+Group:		Utilities/System
+Group(pl):	Narzêdzia/System
+Source0:	%{name}-%{version}.tar.gz
+Requires:	losetup 
+Requires:	e2fsprogs 
+Requires:	/bin/sh 
+Requires:	fileutils 
+Requires:	grep 
+Requires:	mount 
+Requires:	gzip 
+Requires:	tar 
+Requires:	genromfs 
+Requires:	/sbin/insmod.static
+Requires:	/bin/ash.static
+Requires:	rc-scripts >= 0.2.7
+Obsoletes:	mkinitrd
+ExclusiveArch:	%{ix86} sparc sparc64 ia64
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%description
+Mkinitrd creates filesystem images for use as initial ramdisk (initrd)
+images. These ramdisk images are often used to preload the block
+device modules (SCSI or RAID) needed to access the root filesystem.
+
+In other words, generic kernels can be built without drivers for any
+SCSI adapters which load the SCSI driver as a module. Since the kernel
+needs to read those modules, but in this case it isn't able to address
+the SCSI adapter, an initial ramdisk is used. The initial ramdisk is
+loaded by the operating system loader (normally LILO) and is available
+to the kernel as soon as the ramdisk is loaded. The ramdisk image
+loads the proper SCSI adapter and allows the kernel to mount the root
+filesystem. The geninitrd program creates such a ramdisk using
+information found in the /etc/modules.conf file.
+
+%description -l pl
+Mkinitrd s³u¿y do tworzenia obrazu systemu plikowego u¿ywanego jako
+inicjalny ramdysk (initrd), z którego przy starcie systemu s± ³adowane
+modu³y kernela z obs³ug± urz±dzeñ których obs³uga nie jest
+wkompilowana w kernel. Zazwyczaj modu³ami ³adowanymi z inicjalnego
+systemu plikowego s± sterowniki SCSI, IDE czy te¿ RAID po to ¿eby w
+dalszej czê¶ci inicjacji systemu by³ mo¿liwy dostêp do g³ównego
+systemu plikowego (root fs).
+
+Dziêki initrd jest mo¿liwe u¿ywanie dystrybucyjnego kernela w którym
+wkompilowana jest minimalna ilo¶æ obs³ugi ró¿nych urz±dzeñ, a reszta
+kodu obs³ugi sterowników SCSI, IDE czy RAID jest doczytywana w trakcie
+startu z initrd. Skrypt geninitrd generuje obraz ramdysku na podstawie
+bie¿±cych informacji zawartych w /etc/modules.conf.
+
+%prep
+%setup -q
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%{__make} BUILDROOT=$RPM_BUILD_ROOT install
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(644,root,root,755)
+%attr(755,root,root) /sbin/geninitrd
+/etc/sysconfig/geninitrd
+%{_mandir}/man8/*
