@@ -1,12 +1,12 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	3416
-Release:	2
+Version:	3865
+Release:	1
 License:	GPL
 Group:		Applications/System
-Source0:	ftp://ftp.pld-linux.org/people/wiget/geninitrd/%{name}-%{version}.tar.gz
-# Source0-md5:	95fc2c388d22a3ea88b6ca4a1a1dffc5
+Source0:	ftp://ftp.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
+# Source0-md5:	4c8d2cf6a17f69703a237d750b45d788
 PreReq:		rc-scripts >= 0.2.7
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.pre5.0
