@@ -2,7 +2,7 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
 Version:	2.26
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp.pld.org.pl/software/geninitrd/%{name}-%{version}.tar.gz
@@ -10,7 +10,7 @@ Requires:	awk
 Requires:	sh-utils
 Requires:	fileutils
 Requires:	mount
-Requires:	bsp >= 0.2.2
+Requires:	bsp >= 0.3.0
 Requires:	gzip
 Requires:	tar
 Requires:	genromfs
