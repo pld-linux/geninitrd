@@ -18,7 +18,6 @@ Requires:	genromfs
 Requires:	gzip
 # without this softraid installations of PLD fail
 Requires:	mdadm-initrd >= 1.12.0-1
-Requires:	mdadm >= 1.12.0-1
 Requires:	mktemp >= 1.5-8
 Requires:	mount
 Requires:	pci-database >= 0.4
