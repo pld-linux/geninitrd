@@ -1,14 +1,19 @@
+#
+# Conditional build:
+%bcond_with	dmraid	# include partial ugly hack for dmraid. do not use!
+#
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
 Version:	4605
-Release:	3
+Release:	3.1
 License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
 # Source0-md5:	9f15923a273abec0644749b3db533fff
 Patch0:		%{name}-en_xml.patch
 Patch1:		%{name}-mdadm.patch
+Patch2:		%{name}-dmraid.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 PreReq:		rc-scripts >= 0.2.7
 Requires:	awk
@@ -60,6 +65,7 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 %prep
 %setup -q
 %patch1 -p1
+%patch2 -p1
 
 %build
 rm geninitrd.8
