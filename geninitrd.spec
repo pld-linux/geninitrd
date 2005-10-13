@@ -65,7 +65,7 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 %prep
 %setup -q
 %patch1 -p1
-%patch2 -p1
+%{?with_dmraid:%patch2 -p1}
 
 %build
 rm geninitrd.8
