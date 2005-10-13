@@ -1,0 +1,2 @@
+- don't require mdadm on _every_ system. Require strict version of
+  mdadm-initrd in mdadm. Should be enough
