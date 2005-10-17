@@ -1,54 +1,102 @@
---- ./geninitrd	2005-10-13 18:56:09.000000000 +0300
-+++ /tmp/geninitrd	2005-10-13 18:56:02.000000000 +0300
-@@ -1039,6 +1039,42 @@
+--- geninitrd	2005-10-14 12:49:22.000000000 +0300
++++ /tmp/geninitrd	2005-10-17 11:57:18.000000000 +0300
+@@ -48,6 +48,10 @@
+ 	UDEV_TMPFS="yes"
+ 	. /etc/udev/udev.conf
+ fi
++
++if [ -x /sbin/dmraid-initrd ]; then
++	USE_DMRAID="yes"
++fi
+ 			    
+ usage () {
+ 	echo "usage: `basename $0` [--version] [-v] [-f] [--ifneeded] [--preload <module>]" 
+@@ -55,7 +59,7 @@
+ 	echo "       [--initrdfs=rom|ext2|cram] [--modules-conf=<modules.conf>]" 
+ 	echo "       [--with-raidstart] [--without-raidstart] [--with-insmod-static]" 
+ 	echo "       [--without-bootsplash] [--lvmtoolsversion=1|2] [--without-udev]"
+-	echo "       [--without-suspend]"
++	echo "       [--without-suspend] [--without-dmraid]"
+ 	echo "       <initrd-image> <kernel-version>" 
+ 	echo "       (ex: `basename $0` /boot/initrd-2.2.5-15.img 2.2.5-15)" 
+ 	exit 1
+@@ -753,6 +757,9 @@
+ 	--without-udev)
+ 		USE_UDEV=
+ 		;;
++	--without-dmraid)
++		USE_DMRAID=
++		;;
+ 	--with=*)
+ 		BASICMODULES="$BASICMODULES `echo $1 | awk -F= '{print $2;}'`"
+ 		;;
+@@ -841,7 +848,8 @@
+ fi
+ 
+ if [ "$pack_version" -lt "002006" ] ; then
+-    	USE_UDEV=
++	USE_UDEV=
++	USE_DMRAID=
+ fi
+ [ -z "$USE_UDEV" ] && UDEV_TMPFS=
+     
+@@ -1071,7 +1079,7 @@
+ 
+ 	if is_yes "$USE_UDEV"; then
+ 		if is_yes "$UDEV_TMPFS"; then
+-		    cat >> "$s" << EOF
++		    cat >> "$s" <<-EOF
+ echo Creating /dev
+ mount -o mode=0755 -t tmpfs none /dev
+ mknod /dev/console c 5 1
+@@ -1081,7 +1089,7 @@
+ mkdir /dev/shm
  EOF
+ 		fi
+-		cat >> "$s" << EOF
++		cat >> "$s" <<-EOF
+ mount -t proc none /proc
+ echo Starting udev
+ /sbin/udevstart
+@@ -1091,6 +1099,31 @@
+ 	fi
  }
  
-+initrd_gen_udev() {
-+	mkdir -p "$MNTIMAGE/sbin"
-+	inst /sbin/start_udev $MNTIMAGE/sbin/start_udev
-+cat <<-EOF >> "$s"
-+	/sbin/start_udev
-+EOF
-+}
-+
 +initrd_gen_dmraid() {
-+	if [ ! -x /sbin/dmraid-initrd ] ; then
-+		echo "/sbin/dmraid-initrd is missing missing !"
-+		exit 1
-+	fi
++   if [ ! -x /sbin/dmraid-initrd ] ; then
++       echo "/sbin/dmraid-initrd is missing missing !"
++       exit 1
++   fi
 +
-+	mkdir "$MNTIMAGE/sbin"
-+#	cp -a /dev/mapper "$MNTIMAGE/dev/mapper"
-+	mkdir -p "$MNTIMAGE/dev/mapper"
-+	mknod $MNTIMAGE/dev/sda b 8 0
-+	mknod $MNTIMAGE/dev/sdb b 8 16
-+	mkdir -p "$MNTIMAGE/var/lock/dmraid"
-+	inst /sbin/dmraid-initrd $MNTIMAGE/sbin/dmraid
-+	# need dmraid > 1.0.0-rc9, or otherwise uncomment /var/lock/dmraid tmpfs mount and -i option from dmraid
++   if [ ! -x $MNTIMAGE/sbin/udev ]; then
++       echo "udev is needed on target initrd for dmraid to work!"
++       exit 1
++   fi
++
++   mkdir -p "$MNTIMAGE/sbin"
++#   mkdir -p "$MNTIMAGE/dev/mapper"
++   inst /sbin/dmraid-initrd $MNTIMAGE/sbin/dmraid
 +cat <<-EOF >> "$s"
 +	mount -t proc none /proc
 +	mount -t sysfs none /sys
-+	mount -o mode=0755 -t tmpfs none /dev/mapper
-+#	mount -o mode=0755 -t tmpfs none /var/lock/dmraid
-+	/sbin/dmraid -ay -i
-+#	sh
-+#	umount /dev/mapper
-+#	umount /var/lock/dmraid
++	usleep 2000000
++	/sbin/dmraid -ay -i || sh
 +	umount /sys
 +	umount /proc
 +EOF
 +}
 +
++
  initrd_gen_softraid() {
  	[ -n "$verbose" ] && echo "Setting up mdadm..."
  	
-@@ -1210,6 +1247,9 @@
+@@ -1265,6 +1298,10 @@
  	initrd_gen_suspend
  fi
  
-+#initrd_gen_udev
-+initrd_gen_dmraid
++if is_yes "$USE_DMRAID"; then
++	initrd_gen_dmraid
++fi
 +
  if is_yes "$usenfs" ; then
  	initrd_gen_nfs
