@@ -12,8 +12,6 @@ Group:		Applications/System
 #Source0:	ftp://ftp.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	8f65df11eec0a97d4e550916ccbde4ce
-Patch0:		%{name}-en_xml.patch
-Patch1:		%{name}-mdadm.patch
 Patch2:		%{name}-dmraid.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 PreReq:		rc-scripts >= 0.2.7
@@ -65,7 +63,6 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
-%patch1 -p1
 %{?with_dmraid:%patch2 -p1}
 
 %build
