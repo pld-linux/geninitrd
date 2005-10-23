@@ -1,5 +1,5 @@
---- geninitrd	2005-10-14 12:49:22.000000000 +0300
-+++ /tmp/geninitrd	2005-10-17 11:57:18.000000000 +0300
+--- ./geninitrd~	2005-10-14 12:49:22.000000000 +0300
++++ ./geninitrd	2005-10-23 14:33:00.000000000 +0300
 @@ -48,6 +48,10 @@
  	UDEV_TMPFS="yes"
  	. /etc/udev/udev.conf
@@ -74,13 +74,13 @@
 +   fi
 +
 +   mkdir -p "$MNTIMAGE/sbin"
-+#   mkdir -p "$MNTIMAGE/dev/mapper"
 +   inst /sbin/dmraid-initrd $MNTIMAGE/sbin/dmraid
 +cat <<-EOF >> "$s"
 +	mount -t proc none /proc
 +	mount -t sysfs none /sys
++	# 2 secs was enough for my system to initialize. but really this is udev issue?
 +	usleep 2000000
-+	/sbin/dmraid -ay -i || sh
++	/sbin/dmraid -ay -i
 +	umount /sys
 +	umount /proc
 +EOF
