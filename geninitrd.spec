@@ -1,7 +1,3 @@
-#
-# Conditional build:
-%bcond_with	dmraid	# include partial ugly hack for dmraid. do not use!
-#
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
@@ -12,9 +8,8 @@ Group:		Applications/System
 #Source0:	ftp://ftp.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	8f65df11eec0a97d4e550916ccbde4ce
-Patch2:		%{name}-dmraid.patch
+Patch0:		%{name}-dmraid.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
-PreReq:		rc-scripts >= 0.2.7
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
 Requires:	fileutils
@@ -25,6 +20,7 @@ Requires:	mdadm-initrd >= 1.12.0-1
 Requires:	mktemp >= 1.5-8
 Requires:	mount
 Requires:	pci-database >= 0.4
+Requires:	rc-scripts >= 0.2.7
 Requires:	sh-utils
 Requires:	tar
 Obsoletes:	mkinitrd
@@ -32,9 +28,10 @@ BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
-Geninitrd creates filesystem images for use as initial ramdisk (initrd)
-images. These ramdisk images are often used to preload the block
-device modules (SCSI or RAID) needed to access the root filesystem.
+Geninitrd creates filesystem images for use as initial ramdisk
+(initrd) images. These ramdisk images are often used to preload the
+block device modules (SCSI or RAID) needed to access the root
+filesystem.
 
 In other words, generic kernels can be built without drivers for any
 SCSI adapters which load the SCSI driver as a module. Since the kernel
@@ -63,7 +60,7 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
-%{?with_dmraid:%patch2 -p1}
+%patch0 -p1
 
 %build
 rm geninitrd.8
@@ -82,5 +79,5 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc ChangeLog
 %attr(755,root,root) /sbin/geninitrd
-%config(noreplace) %verify(not md5 size mtime) /etc/sysconfig/geninitrd
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/geninitrd
 %{_mandir}/man8/*
