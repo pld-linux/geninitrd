@@ -1,0 +1,33 @@
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 6537)
++++ geninitrd	(kopia robocza)
+@@ -668,16 +668,25 @@
+ 	        MODULE2=$MODULE2/$NAME2
+ 	        module="`echo $mod | awk -F/ '{ $0=$NF } /'$modext'.*$/ { gsub(/'$modext'.*/, NIL, $0); } { print $0; }'`"
+ 	        options="`awk '{ if($1 == "options" && $2 == "'${module}'") { for(i=3;i<=NF;i++) printf("%s ",$i); }}' "$modulefile"`"
++		eval sleep_var="\$MODULE_${module}_USLEEP"
+ 
+ 	        if [ -n "$verbose" ]; then
+-	                /bin/echo -n "Loading module [$module] "
++	                echo -n "Loading module [$module] "
+ 	                if [ -n "$options" ] ; then
+-	                        echo "with options [$options]."
++	                        echo -n "with options [$options]"
+ 	                else
+-	                        echo "without options."
++	                        echo -n "without options"
+ 	                fi
++			if [ -n "$sleep_var" ]; then
++				echo " and $sleep_var usleep."
++			else
++				echo "."
++			fi
+ 	        fi
+ 	        echo "$insmod /lib/modules/$kernel/$MODULE2 $options" >> "$linuxrc"
++		if [ -n "${sleep_var}" ]; then
++			echo "usleep $sleep_var" >> "$linuxrc"
++		fi
+ 	done
+ }
+ 
