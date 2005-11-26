@@ -1,28 +1,28 @@
-Index: geninitrd
-===================================================================
---- geninitrd	(wersja 6537)
-+++ geninitrd	(kopia robocza)
-@@ -668,16 +668,25 @@
- 	        MODULE2=$MODULE2/$NAME2
+diff -urNBb geninitrd-4605.org/geninitrd geninitrd-4605/geninitrd
+--- geninitrd-4605.org/geninitrd	2004-09-25 23:18:06.000000000 +0200
++++ geninitrd-4605/geninitrd	2005-11-26 16:36:46.805070000 +0100
+@@ -663,15 +663,26 @@
  	        module="`echo $mod | awk -F/ '{ $0=$NF } /'$modext'.*$/ { gsub(/'$modext'.*/, NIL, $0); } { print $0; }'`"
  	        options="`awk '{ if($1 == "options" && $2 == "'${module}'") { for(i=3;i<=NF;i++) printf("%s ",$i); }}' "$modulefile"`"
-+		eval sleep_var="\$MODULE_${module}_USLEEP"
  
++		sleep_module=$(echo "${module}" | awk ' { gsub("-", "_", $0 } { print $0; } ')
++		sleep_var="$(eval echo \$MODULE_${sleep_module}_USLEEP)"
++
  	        if [ -n "$verbose" ]; then
 -	                /bin/echo -n "Loading module [$module] "
 +	                echo -n "Loading module [$module] "
  	                if [ -n "$options" ] ; then
 -	                        echo "with options [$options]."
 +	                        echo -n "with options [$options]"
- 	                else
--	                        echo "without options."
++	                else
 +	                        echo -n "without options"
- 	                fi
++	                fi
 +			if [ -n "$sleep_var" ]; then
 +				echo " and $sleep_var usleep."
-+			else
+ 	                else
+-	                        echo "without options."
 +				echo "."
-+			fi
+ 	                fi
  	        fi
  	        echo "$insmod /lib/modules/$kernel/$MODULE2 $options" >> "$linuxrc"
 +		if [ -n "${sleep_var}" ]; then
