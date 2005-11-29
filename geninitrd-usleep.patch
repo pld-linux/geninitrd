@@ -5,7 +5,7 @@ diff -urNBb geninitrd-4605.org/geninitrd geninitrd-4605/geninitrd
  	        module="`echo $mod | awk -F/ '{ $0=$NF } /'$modext'.*$/ { gsub(/'$modext'.*/, NIL, $0); } { print $0; }'`"
  	        options="`awk '{ if($1 == "options" && $2 == "'${module}'") { for(i=3;i<=NF;i++) printf("%s ",$i); }}' "$modulefile"`"
  
-+		sleep_module=$(echo "${module}" | awk ' { gsub("-", "_", $0 } { print $0; } ')
++		sleep_module=$(echo "${module}" | awk ' { gsub("-", "_", $0); } { print $0; } ')
 +		sleep_var="$(eval echo \$MODULE_${sleep_module}_USLEEP)"
 +
  	        if [ -n "$verbose" ]; then
