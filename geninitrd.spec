@@ -17,12 +17,12 @@ Patch2:		%{name}-dmraid.patch
 Patch3:		%{name}-usleep.patch
 Patch4:		%{name}-md-procdata.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
-Requires:	rc-scripts >= 0.2.7
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
 Requires:	fileutils
 Requires:	genromfs
 Requires:	gzip
+Requires:	rc-scripts >= 0.2.7
 # without this softraid installations of PLD fail
 Requires:	mdadm-initrd >= 1.12.0-1
 Requires:	mktemp >= 1.5-8
