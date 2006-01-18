@@ -1,0 +1,1 @@
+- --fs is back, but warn if it used; exit if modules.dep is missing; version 2.16
