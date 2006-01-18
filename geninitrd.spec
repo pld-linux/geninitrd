@@ -1,7 +1,3 @@
-#
-# Conditional build:
-%bcond_with	dmraid	# include partial ugly hack for dmraid. do not use!
-#
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
