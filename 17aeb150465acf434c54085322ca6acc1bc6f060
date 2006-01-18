@@ -1,0 +1,3 @@
+- version 2.18
+- UUID and LABEL support for ext3
+- error messages fixes
