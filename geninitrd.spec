@@ -9,7 +9,7 @@ Version:	6838
 Release:	1
 License:	GPL
 Group:		Applications/System
-Source0:	ftp://ftp.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
+Source0:	ftp://ftp1.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
 # Source0-md5:	29476572fdf7e2e6c8fca2cc89c07acb
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
