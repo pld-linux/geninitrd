@@ -1,0 +1,6 @@
+- Removed Req: e2fsutils (wasn't needed long time ago, we use
+  romfs), trash and insmod.static - they are replaced by bsp.
+  Rationale:
+  They can be needed when special option are turned on,
+  but in normal config they are not, and as this is base
+  pkg, user should not be forced to install them.
