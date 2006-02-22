@@ -2,11 +2,12 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
 Version:	6894
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp1.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
 # Source0-md5:	93eac3b1c0976f82987d9648dd05c7ee
+Patch0:		%{name}-lvm.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
@@ -58,6 +59,7 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
+%patch0 -p0
 
 %build
 rm geninitrd.8
