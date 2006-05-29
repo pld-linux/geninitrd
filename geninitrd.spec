@@ -5,7 +5,8 @@ Version:	7453
 Release:	1
 License:	GPL
 Group:		Applications/System
-Source0:	ftp://ftp1.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
+#Source0:	ftp://ftp1.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
+Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	a189a98f047cc00d9b6b416bbbca2ed8
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
