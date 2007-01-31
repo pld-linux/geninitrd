@@ -1,0 +1,11 @@
+--- geninitrd-8202/geninitrd~	2007-01-27 19:35:18.000000000 +0100
++++ geninitrd-8202/geninitrd	2007-01-31 22:43:07.000000000 +0100
+@@ -1556,7 +1556,7 @@
+ 	init=/sbin/init
+ fi
+ umount /proc
+-exec switch_root /newroot \$init
++exec chroot /newroot \$init
+ EOF
+ 	# we need real file, not symlink
+ 	rm -f $MNTIMAGE/init
