@@ -2,7 +2,7 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
 Version:	8202
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/System
 #Source0:	ftp://ftp1.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
@@ -22,6 +22,7 @@ Requires:	mount
 Requires:	pci-database >= 0.4
 Requires:	sh-utils
 Requires:	tar
+Conflicts:	udev-initrd < 1:104
 Obsoletes:	mkinitrd
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
