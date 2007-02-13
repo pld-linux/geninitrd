@@ -1,5 +1,5 @@
 Summary:	Creates an initial ramdisk image for preloading modules
-Summary(pl.UTF-8):   Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
+Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
 Version:	8202
 Release:	3
