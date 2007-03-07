@@ -78,6 +78,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc ChangeLog
 %attr(755,root,root) /sbin/geninitrd
-/etc/geninitrd
+%dir %{_sysconfdir}/geninitrd
+%{_sysconfdir}/geninitrd/functions
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/geninitrd
 %{_mandir}/man8/*
