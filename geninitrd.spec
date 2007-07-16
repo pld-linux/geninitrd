@@ -1,12 +1,12 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	8668
+Version:	8682
 Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp1.pld-linux.org/people/hawk/geninitrd/%{name}-%{version}.tar.gz
-# Source0-md5:	549d99b45b3dc625fa72bb2fad6c86a4
+# Source0-md5:	31a78ebe0832d2da88757fd6b49dd7e9
 Patch0:		%{name}-ac.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
