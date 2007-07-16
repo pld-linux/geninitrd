@@ -6,7 +6,7 @@ Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	ftp://ftp1.pld-linux.org/people/hawk/geninitrd/%{name}-%{version}.tar.gz
-# Source0-md5:	549d99b45b3dc625fa72bb2fad6c86a4
+# Source0-md5:	31a78ebe0832d2da88757fd6b49dd7e9
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
