@@ -1,16 +1,17 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	8202
-Release:	2
+Version:	8812
+Release:	1
 License:	GPL
 Group:		Applications/System
-#Source0:	ftp://ftp1.pld-linux.org/people/arekm/software/%{name}-%{version}.tar.gz
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	7c0dfb42eaea6e02859048393cc23d9b
+# Source0-md5:	9fd5757c6f75ace3653d1fd463b33b49
+Patch0:		%{name}-ac.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
+Requires:	cpio
 Requires:	fileutils
 Requires:	genromfs
 Requires:	gzip
@@ -22,7 +23,6 @@ Requires:	mount
 Requires:	pci-database >= 0.4
 Requires:	sh-utils
 Requires:	tar
-Conflicts:	udev-initrd < 1:104
 Obsoletes:	mkinitrd
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -60,6 +60,7 @@ bie¿±cych informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %{__make}
@@ -77,5 +78,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc ChangeLog
 %attr(755,root,root) /sbin/geninitrd
+%dir %{_sysconfdir}/geninitrd
+%{_sysconfdir}/geninitrd/functions
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/geninitrd
 %{_mandir}/man8/*
