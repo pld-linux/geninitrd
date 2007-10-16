@@ -1,0 +1,11 @@
+--- geninitrd-8812/geninitrd~	2007-10-16 19:24:10.000000000 +0300
++++ geninitrd-8812/geninitrd	2007-10-16 19:24:46.626610800 +0300
+@@ -96,7 +96,7 @@
+ 
+ # aborts program abnormally
+ die() {
+-	local rc={$2:-1}
++	local rc=${2:-1}
+ 	echo >&2 "$PROGRAM: ERROR: $1"
+ 	exit $rc
+ }
