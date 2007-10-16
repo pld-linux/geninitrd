@@ -1,12 +1,14 @@
 Summary:	Creates an initial ramdisk image for preloading modules
-Summary(pl.UTF-8):	NarzÄ™dzie do tworzenia inicjalnego ramdysku uÅ¼ywanego przy starcie systemu
+Summary(pl):	Narzêdzie do tworzenia inicjalnego ramdysku u¿ywanego przy starcie systemu
 Name:		geninitrd
-Version:	8702
-Release:	1
+Version:	8812
+Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	f5e55c473bcfaf58f5c54ee4ec3e8097
+# Source0-md5:	9fd5757c6f75ace3653d1fd463b33b49
+Patch0:		%{name}-ac.patch
+Patch1:		%{name}-typo.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
@@ -22,7 +24,6 @@ Requires:	mount
 Requires:	pci-database >= 0.4
 Requires:	sh-utils
 Requires:	tar
-Conflicts:	udev-initrd < 1:104
 Obsoletes:	mkinitrd
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -43,23 +44,25 @@ loads the proper SCSI adapter and allows the kernel to mount the root
 filesystem. The geninitrd program creates such a ramdisk using
 information found in the /etc/modules.conf file.
 
-%description -l pl.UTF-8
-Geninitrd sÅ‚uÅ¼y do tworzenia obrazu systemu plikowego uÅ¼ywanego jako
-inicjalny ramdysk (initrd), z ktÃ³rego przy starcie systemu sÄ… Å‚adowane
-moduÅ‚y kernela z obsÅ‚ugÄ… urzÄ…dzeÅ„ ktÃ³rych obsÅ‚uga nie jest
-wkompilowana w kernel. Zazwyczaj moduÅ‚ami Å‚adowanymi z inicjalnego
-systemu plikowego sÄ… sterowniki SCSI, IDE czy teÅ¼ RAID po to Å¼eby w
-dalszej czÄ™Å›ci inicjacji systemu byÅ‚ moÅ¼liwy dostÄ™p do gÅ‚Ã³wnego
+%description -l pl
+Geninitrd s³u¿y do tworzenia obrazu systemu plikowego u¿ywanego jako
+inicjalny ramdysk (initrd), z którego przy starcie systemu s± ³adowane
+modu³y kernela z obs³ug± urz±dzeñ których obs³uga nie jest
+wkompilowana w kernel. Zazwyczaj modu³ami ³adowanymi z inicjalnego
+systemu plikowego s± sterowniki SCSI, IDE czy te¿ RAID po to ¿eby w
+dalszej czê¶ci inicjacji systemu by³ mo¿liwy dostêp do g³ównego
 systemu plikowego (root fs).
 
-DziÄ™ki initrd jest moÅ¼liwe uÅ¼ywanie dystrybucyjnego kernela w ktÃ³rym
-wkompilowana jest minimalna iloÅ›Ä‡ obsÅ‚ugi rÃ³Å¼nych urzÄ…dzeÅ„, a reszta
-kodu obsÅ‚ugi sterownikÃ³w SCSI, IDE czy RAID jest doczytywana w trakcie
+Dziêki initrd jest mo¿liwe u¿ywanie dystrybucyjnego kernela w którym
+wkompilowana jest minimalna ilo¶æ obs³ugi ró¿nych urz±dzeñ, a reszta
+kodu obs³ugi sterowników SCSI, IDE czy RAID jest doczytywana w trakcie
 startu z initrd. Skrypt geninitrd generuje obraz ramdysku na podstawie
-bieÅ¼Ä…cych informacji zawartych w /etc/modules.conf.
+bie¿±cych informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
+%patch0 -p1
+%patch1 -p1
 
 %build
 %{__make}
