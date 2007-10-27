@@ -7,7 +7,6 @@ License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	f5e55c473bcfaf58f5c54ee4ec3e8097
-Patch0:		%{name}-typo.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
@@ -61,7 +60,6 @@ bieżących informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 %{__make}
