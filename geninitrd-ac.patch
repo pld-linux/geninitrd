@@ -1,11 +1,11 @@
---- geninitrd-8202.orig/geninitrd	2007-01-27 19:35:18.000000000 +0100
-+++ geninitrd-8202/geninitrd	2007-02-05 11:31:33.000000000 +0100
-@@ -934,12 +934,7 @@
+--- geninitrd-8985/geninitrd~	2007-11-04 22:52:56.894367876 +0200
++++ geninitrd-8985/geninitrd	2007-11-04 22:53:39.836233209 +0200
+@@ -1148,12 +1148,7 @@
  
- if [ "x" = "x$INITRDFS" ] ; then
- 	if [ "x" = "x$FS" ] ; then
+ if [ -z "$INITRDFS" ]; then
+ 	if [ -z = "$FS" ]; then
 -		# default value
--		if [ "$pack_version" -ge "002005" ] ; then
+-		if [ "$pack_version" -ge "002005" ]; then
 -			INITRDFS="initramfs"
 -		else
 -			INITRDFS="rom"
