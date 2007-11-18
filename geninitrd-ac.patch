@@ -1,15 +1,18 @@
---- geninitrd-8985/geninitrd~	2007-11-04 22:52:56.894367876 +0200
-+++ geninitrd-8985/geninitrd	2007-11-04 22:53:39.836233209 +0200
-@@ -1148,12 +1148,7 @@
+diff -ur geninitrd-8985.orig/geninitrd geninitrd-8985/geninitrd
+--- geninitrd-8985.orig/geninitrd	2007-11-04 21:46:35.000000000 +0100
++++ geninitrd-8985/geninitrd	2007-11-18 09:25:26.000000000 +0100
+@@ -1147,13 +1147,8 @@
+ pack_version_long="`echo "$kernel"|awk -F. '{print sprintf("%03d%03d%03d",$1,$2,$3)}'`"
  
  if [ -z "$INITRDFS" ]; then
- 	if [ -z = "$FS" ]; then
+-	if [ -z = "$FS" ]; then
 -		# default value
 -		if [ "$pack_version" -ge "002005" ]; then
 -			INITRDFS="initramfs"
 -		else
 -			INITRDFS="rom"
 -		fi
++	if [ -z "$FS" ]; then
 +		INITRDFS="rom"
  	else
  		echo >&2 "Warning: FS configuration options is obsoleted. Use INITRDFS instead"
