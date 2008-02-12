@@ -1,12 +1,12 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	9000.4
-Release:	2
+Version:	9000.5
+Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	4cef6f7417f293f44952eb7368a2f6aa
+# Source0-md5:	7f1a22455eb826f3c55c2970a98e8e1a
 Patch0:		%{name}-ac.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
@@ -19,12 +19,12 @@ Requires:	rc-scripts >= 0.2.7
 # without this softraid installations of PLD fail
 Requires:	mdadm-initrd >= 1.12.0-1
 Requires:	mktemp >= 1.5-8
+Requires:	module-init-tools >= 3.2.2-3
 Requires:	mount
 Requires:	pci-database >= 0.4
 Requires:	sh-utils
 Requires:	tar
 Obsoletes:	mkinitrd
-Conflicts:	module-init-tools < 3.2.2-3
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
