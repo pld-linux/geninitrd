@@ -6,8 +6,8 @@ Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-Patch0:		%{name}-ac.patch
 # Source0-md5:	b888b5a1dd4f24fa076eae59f56638b6
+Patch0:		%{name}-ac.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
