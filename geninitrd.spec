@@ -6,7 +6,7 @@ Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	80b817efc3a260602d24e0886464a006
+# Source0-md5:	8a3f043b5d95b67c242c0d3e69765d15
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
