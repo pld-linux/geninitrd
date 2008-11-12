@@ -1,15 +1,17 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	9000.16
-Release:	1
+Version:	9000.17
+# leave rel 1 for ac
+Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	7d9ef9705bad2575b7a2f936127f32cc
+# Source0-md5:	048d5d6a946528975cee78d25ea1f926
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
+Requires:	coreutils
 Requires:	cpio
 Requires:	fileutils
 Requires:	genromfs
@@ -21,7 +23,6 @@ Requires:	mktemp >= 1.5-8
 Requires:	module-init-tools >= 3.2.2-6
 Requires:	mount
 Requires:	pci-database >= 0.4
-Requires:	sh-utils
 Requires:	tar
 Obsoletes:	mkinitrd
 Conflicts:	udev-initrd < 1:104
@@ -77,8 +78,10 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc ChangeLog
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/geninitrd
 %attr(755,root,root) /sbin/geninitrd
+%{_mandir}/man8/*
+
 %dir %{_sysconfdir}/geninitrd
 %{_sysconfdir}/geninitrd/functions
-%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/geninitrd
-%{_mandir}/man8/*
+%{_sysconfdir}/geninitrd/mod-luks.sh
