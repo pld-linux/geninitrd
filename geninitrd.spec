@@ -3,11 +3,12 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	9000.17
 # leave rel 1 for ac
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	2416f936ed2018c0500dd6dfe06511ee
+Patch0:		%{name}-udev.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
 Requires:	busybox-initrd >= 1.00-0.rc3.2
@@ -62,6 +63,7 @@ bieżących informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
+%patch0 -p0
 
 %build
 %{__make}
