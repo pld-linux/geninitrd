@@ -1,0 +1,14 @@
+diff -urN geninitrd-10000.org/geninitrd geninitrd-10000/geninitrd
+--- geninitrd-10000.org/geninitrd	2008-11-18 16:04:23.000000000 +0100
++++ geninitrd-10000/geninitrd	2009-02-10 11:18:17.231191316 +0100
+@@ -27,8 +27,8 @@
+ USE_TUXONICE=no
+ # it should be safe to remove scsi_mod from here, but I'm not sure...
+ PRESCSIMODS="-scsi_mod unknown -sd_mod"
+-PREIDEMODS="-ide-core unknown -ide-detect -ide-disk"
+-PREIDEMODSOLD="-ide-probe -ide-probe-mod -ide-disk"
++PREIDEMODS="-ide-core unknown -ide-detect -ide-disk -ide-gd_mod"
++PREIDEMODSOLD="-ide-probe -ide-probe-mod -ide-disk -ide-gd_mod"
+ target=""
+ kernel=""
+ force=""
