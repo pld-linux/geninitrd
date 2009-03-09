@@ -1,12 +1,12 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	10000.2
+Version:	10000.3
 Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	34e6e79bbbf6e0c4687dcc25c62a7d7d
+# Source0-md5:	1fbd532c853eace59865ebf11dc79bb3
 Patch0:		%{name}-ac.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
@@ -25,6 +25,7 @@ Requires:	mount
 Requires:	pci-database >= 0.4
 Requires:	tar
 Obsoletes:	mkinitrd
+Conflicts:	grubby < 5.0.4-3.1
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -80,8 +81,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc ChangeLog
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/geninitrd
 %attr(755,root,root) /sbin/geninitrd
-%{_mandir}/man8/*
+%{_mandir}/man8/geninitrd.8*
 
-%dir %{_sysconfdir}/geninitrd
-%{_sysconfdir}/geninitrd/functions
-%{_sysconfdir}/geninitrd/mod-*.sh
+%dir /lib/geninitrd
+/lib/geninitrd/functions
+/lib/geninitrd/mod-*.sh
