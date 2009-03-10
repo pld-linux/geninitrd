@@ -5,7 +5,7 @@
  if [ -z "$INITRDFS" ]; then
  	if [ -z "$FS" ]; then
 -		# default value
--		if [ "$pack_version" -ge "002005" ]; then
+-		if [ "$kernel_version" -ge "002005" ]; then
 -			INITRDFS="initramfs"
 -		else
 -			INITRDFS="rom"
