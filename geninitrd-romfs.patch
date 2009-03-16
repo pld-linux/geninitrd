@@ -1,0 +1,16 @@
+--- geninitrd-9000.1/geninitrd~	2007-11-28 23:38:13.000000000 +0200
++++ geninitrd-9000.1/geninitrd	2007-11-28 23:38:46.662253955 +0200
+@@ -1662,12 +1662,7 @@
+ 
+ if [ -z "$INITRDFS" ]; then
+ 	if [ -z "$FS" ]; then
+-		# default value
+-		if [ "$kernel_version" -ge "002005" ]; then
+-			INITRDFS="initramfs"
+-		else
+-			INITRDFS="rom"
+-		fi
++		INITRDFS="rom"
+ 	else
+ 		warn "Warning: FS configuration options is obsoleted. Use INITRDFS instead"
+ 		INITRDFS="$FS"
