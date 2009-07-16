@@ -3,7 +3,7 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.14
 # leave rel 1 for ac
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
@@ -18,6 +18,9 @@ Requires:	fileutils
 Requires:	genromfs
 Requires:	gzip
 Requires:	/usr/bin/ldd
+# otherwise lvm subsystem is automaticly disabled in geninitrd
+Requires:	lvm2
+Requires:	lvm2-initrd
 Requires:	rc-scripts >= 0.2.7
 # without this softraid installations of PLD fail
 Requires:	mdadm-initrd >= 1.12.0-1
