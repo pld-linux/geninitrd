@@ -19,7 +19,6 @@ Requires:	genromfs
 Requires:	gzip
 Requires:	/usr/bin/ldd
 # otherwise lvm subsystem is automaticly disabled in geninitrd
-Requires:	lvm2
 Requires:	lvm2-initrd
 Requires:	rc-scripts >= 0.2.7
 # without this softraid installations of PLD fail
