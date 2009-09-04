@@ -3,7 +3,7 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.18
 # leave rel 1 for ac
-Release:	3
+Release:	4
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
@@ -32,6 +32,7 @@ Requires:	tar
 Obsoletes:	mkinitrd
 Conflicts:	grubby < 6.0.24-3
 Conflicts:	udev-initrd < 1:104
+Conflicts:	xz < 4.999.9
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
