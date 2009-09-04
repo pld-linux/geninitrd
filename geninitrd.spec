@@ -3,7 +3,7 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.18
 # leave rel 1 for ac
-Release:	4
+Release:	5
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz

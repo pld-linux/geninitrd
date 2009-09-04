@@ -39,7 +39,7 @@ Index: geninitrd
 -	lzma)
 -		lzma -9 < "$IMAGE" > "$tmp"
 +	xz)
-+		xz -9 < "$IMAGE" > "$tmp"
++		xz --format=lzma -9 < "$IMAGE" > "$tmp"
  		;;
  	bzip2)
  		bzip2 -9 < "$IMAGE" > "$tmp"
