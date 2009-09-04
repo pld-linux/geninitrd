@@ -1,0 +1,13 @@
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 10524)
++++ geninitrd	(kopia robocza)
+@@ -1328,7 +1328,7 @@
+ 	# extension, which is .gz most of the time.
+ 	case "$compressor" in
+ 	lzma)
+-		lzma -9 < "$IMAGE" > "$tmp"
++		lzma < "$IMAGE" > "$tmp"
+ 		;;
+ 	bzip2)
+ 		bzip2 -9 < "$IMAGE" > "$tmp"
