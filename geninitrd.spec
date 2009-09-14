@@ -12,7 +12,7 @@ Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-lzma.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	awk
-Requires:	busybox-initrd >= 1.00-0.rc3.2
+Requires:	busybox-initrd > 1.00-4
 Requires:	coreutils
 Requires:	cpio
 Requires:	fileutils
