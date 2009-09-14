@@ -19,8 +19,6 @@ Requires:	fileutils
 Requires:	genromfs
 Requires:	gzip
 Requires:	/usr/bin/ldd
-# otherwise lvm subsystem is automaticly disabled in geninitrd
-Requires:	lvm2-initrd
 Requires:	rc-scripts >= 0.2.7
 # without this softraid installations of PLD fail
 Requires:	mdadm-initrd >= 1.12.0-1
@@ -29,6 +27,8 @@ Requires:	module-init-tools >= 3.2.2-6
 Requires:	mount
 Requires:	pci-database >= 0.4
 Requires:	tar
+# otherwise LVM subsystem is automatically disabled in geninitrd
+Suggests:	lvm2-initrd
 Obsoletes:	mkinitrd
 Conflicts:	grubby < 6.0.24-3
 Conflicts:	udev-initrd < 1:104
