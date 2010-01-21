@@ -1,13 +1,13 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	10000.19
+Version:	10000.20
 # leave rel 1 for ac
 Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	00b6239fe068b89f7e158523ccc55c8a
+# Source0-md5:	de4e015717e7dc37417a6b687063a49f
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
