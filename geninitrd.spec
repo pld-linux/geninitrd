@@ -3,7 +3,7 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.20
 # leave rel 1 for ac
-Release:	2
+Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
@@ -11,6 +11,7 @@ Source0:	%{name}-%{version}.tar.gz
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
+Requires:	/usr/bin/ldd
 Requires:	awk
 Requires:	busybox-initrd > 1.00-4
 Requires:	coreutils
@@ -18,7 +19,6 @@ Requires:	cpio
 Requires:	fileutils
 Requires:	genromfs
 Requires:	gzip
-Requires:	/usr/bin/ldd
 Requires:	mktemp >= 1.5-8
 Requires:	module-init-tools >= 3.2.2-6
 Requires:	mount
@@ -35,7 +35,11 @@ Suggests:	lvm2-initrd
 Suggests:	mdadm-initrd >= 1.12.0-1
 %endif
 Obsoletes:	mkinitrd
+%if "%{pld_release}" == "ac"
+Conflicts:	grubby < 5.0.4-3.1
+%else
 Conflicts:	grubby < 6.0.24-3
+%endif
 Conflicts:	udev-initrd < 1:104
 Conflicts:	xz < 4.999.9
 BuildArch:	noarch
