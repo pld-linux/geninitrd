@@ -10,6 +10,7 @@ Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	de4e015717e7dc37417a6b687063a49f
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
+Patch2:		%{name}-scsi_sync_scan.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
 Requires:	awk
@@ -81,6 +82,7 @@ bieżących informacji zawartych w /etc/modules.conf.
 %if "%{pld_release}" == "ti"
 %patch0 -p1
 %patch1 -p1
+%patch2 -p0
 %endif
 
 %build
