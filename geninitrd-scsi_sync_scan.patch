@@ -4,7 +4,7 @@
  		local usleep=$(eval echo \$MODULE_${genericname}_USLEEP)
  		local firmware=$(eval echo \$MODULE_${genericname}_FIRMWARE)
  
-+		if [ "$module" = "scsi_mod" ]; then
++		if [ "$module" = "scsi_mod" -a "$kernel_version_long" -ge "002006030" ]; then
 +			options="scan=sync $options"
 +		fi
 +
