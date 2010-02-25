@@ -1,0 +1,24 @@
+--- geninitrd.orig	2010-02-25 14:06:27.000000000 +0100
++++ geninitrd	2010-02-25 14:16:02.133902997 +0100
+@@ -618,6 +618,10 @@
+ 		local usleep=$(eval echo \$MODULE_${genericname}_USLEEP)
+ 		local firmware=$(eval echo \$MODULE_${genericname}_FIRMWARE)
+ 
++		if [ "$module" = "scsi_mod" ]; then
++			options="scan=sync $options"
++		fi
++
+ 		if [ -n "$verbose" ]; then
+ 			s=""
+ 			if [ "$options" ]; then
+@@ -648,10 +652,6 @@
+ 			if [ "$(busybox_applet rmmod 2>/dev/null; echo $?)" = 0 ]; then
+ 				echo "rmmod scsi_wait_scan" | add_linuxrc
+ 			fi
+-			# HACK HACK HACK until we get proper solution like waiting untill rootfs device appears
+-			if [ -z "$usleep" -a "$kernel_version_long" -ge "002006030" ]; then
+-				echo "usleep 15000000" | add_linuxrc
+-			fi
+ 		fi
+ 
+ 	done
