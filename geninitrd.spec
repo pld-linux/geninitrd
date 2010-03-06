@@ -34,6 +34,7 @@ Requires:	mdadm-initrd >= 1.12.0-1
 Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
+Suggests:	mdadm >= 1.12.0-1
 %endif
 Obsoletes:	mkinitrd
 %if "%{pld_release}" == "ac"
