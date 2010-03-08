@@ -1,5 +1,7 @@
---- geninitrd.orig	2010-02-25 14:06:27.000000000 +0100
-+++ geninitrd	2010-02-25 14:16:02.133902997 +0100
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 11227)
++++ geninitrd	(kopia robocza)
 @@ -618,6 +618,10 @@
  		local usleep=$(eval echo \$MODULE_${genericname}_USLEEP)
  		local firmware=$(eval echo \$MODULE_${genericname}_FIRMWARE)

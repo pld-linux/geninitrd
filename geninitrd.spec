@@ -3,7 +3,7 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.20
 # leave rel 1 for ac
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
@@ -83,8 +83,8 @@ bieżących informacji zawartych w /etc/modules.conf.
 %if "%{pld_release}" == "ti"
 %patch0 -p1
 %patch1 -p1
-%patch2 -p0
 %endif
+%patch2 -p0
 
 %build
 %{__make}
