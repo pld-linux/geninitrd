@@ -3,7 +3,7 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.20
 # leave rel 1 for ac
-Release:	3
+Release:	4
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
@@ -11,6 +11,7 @@ Source0:	%{name}-%{version}.tar.gz
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
 Patch2:		%{name}-scsi_sync_scan.patch
+Patch3:		%{name}-tuxonice_on_dm.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
 Requires:	awk
@@ -33,8 +34,8 @@ Requires:	mdadm-initrd >= 1.12.0-1
 # otherwise LVM subsystem is automatically disabled in geninitrd
 Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
-Suggests:	mdadm-initrd >= 1.12.0-1
 Suggests:	mdadm >= 1.12.0-1
+Suggests:	mdadm-initrd >= 1.12.0-1
 %endif
 Obsoletes:	mkinitrd
 %if "%{pld_release}" == "ac"
@@ -85,6 +86,7 @@ bieżących informacji zawartych w /etc/modules.conf.
 %patch1 -p1
 %endif
 %patch2 -p0
+%patch3 -p1
 
 %build
 %{__make}

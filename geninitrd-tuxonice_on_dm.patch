@@ -1,0 +1,24 @@
+--- geninitrd-10000.20/geninitrd.old	2010-03-29 22:12:27.115199528 +0200
++++ geninitrd-10000.20/geninitrd	2010-03-29 22:14:49.765210074 +0200
+@@ -1218,10 +1218,6 @@
+ 	initrd_gen_udev
+ fi
+ 
+-if is_yes "$USE_TUXONICE"; then
+-	initrd_gen_tuxonice
+-fi
+-
+ find_modules_uvesafb
+ initrd_gen_uvesafb
+ 
+@@ -1256,6 +1252,10 @@
+ 	initrd_gen_setrootdev
+ fi
+ 
++if is_yes "$USE_TUXONICE"; then
++	initrd_gen_tuxonice
++fi
++
+ if is_yes "$USE_SUSPEND"; then
+ 	initrd_gen_suspend
+ fi
