@@ -1,3 +1,8 @@
+### TODO:
+# - BUG: you can't set in /etc/mdadm.conf:
+#  DEVICE partitions containers
+#  (which is default BTW if none set). Generation of initrd will fail
+#
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
