@@ -37,10 +37,14 @@ Requires:	tar
 Requires:	lvm2-initrd
 Requires:	mdadm-initrd >= 1.12.0-1
 %else
-# otherwise LVM subsystem is automatically disabled in geninitrd
+# otherwise LVM subsystem is not enabled in geninitrd
 Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
+%endif
+# suggest for blkid
+%if "%{pld_release}" != "ac"
+Suggests:	util-linux-ng-initrd
 %endif
 Obsoletes:	mkinitrd
 %if "%{pld_release}" == "ac"
