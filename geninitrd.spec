@@ -6,16 +6,15 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	10000.30
+Version:	10000.31
 # leave rel 1 for ac
-Release:	2
+Release:	0.1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	793cd8d78c5e148a9dd8fe9d0cf4ad5a
+# Source0-md5:	8f3977b06a45294cbe3b8d16121339e4
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
-Patch2:		%{name}-tuxonice_on_dm.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
 Requires:	awk
@@ -92,7 +91,6 @@ bieżących informacji zawartych w /etc/modules.conf.
 %patch0 -p1
 %patch1 -p1
 %endif
-%patch2 -p1
 
 %build
 %{__make}
@@ -116,3 +114,4 @@ rm -rf $RPM_BUILD_ROOT
 %dir /lib/geninitrd
 /lib/geninitrd/functions
 /lib/geninitrd/mod-*.sh
+%attr(755,root,root) /lib/geninitrd/extract-ikconfig
