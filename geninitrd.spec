@@ -8,11 +8,11 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.31
 # leave rel 1 for ac
-Release:	0.1
+Release:	0.2
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	8f3977b06a45294cbe3b8d16121339e4
+# Source0-md5:	ba11c56735828f79148e476179945217
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
