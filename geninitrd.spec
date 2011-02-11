@@ -41,7 +41,7 @@ Suggests:	mdadm-initrd >= 1.12.0-1
 %endif
 # suggest for blkid
 %if "%{pld_release}" != "ac"
-Suggests:	util-linux-ng-initrd
+Suggests:	util-linux-initrd
 %endif
 Obsoletes:	mkinitrd
 %if "%{pld_release}" == "ac"
