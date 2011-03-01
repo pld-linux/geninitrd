@@ -8,13 +8,14 @@ Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy 
 Name:		geninitrd
 Version:	10000.32
 # leave rel 1 for ac
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	9d75e347ff49312209e97ead93378f4a
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
+Patch2:		%{name}-svn.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
 Requires:	awk
@@ -91,6 +92,7 @@ bieżących informacji zawartych w /etc/modules.conf.
 %patch0 -p1
 %patch1 -p1
 %endif
+%patch2 -p0
 
 %build
 %{__make}

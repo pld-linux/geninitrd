@@ -1,0 +1,16 @@
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 12174)
++++ geninitrd	(kopia robocza)
+@@ -772,9 +772,9 @@
+ 			device=$rootdev
+ 		fi
+ 
+-		[ -n "$ROOTFSFLAG" ] && ROOTFSFLAGS="-o $ROOTFSFLAGS"
++		[ -n "$ROOTFSFLAGS" ] && ROOTFSFLAGS="-o $ROOTFSFLAGS"
+ 
+-		mount -t $rootfs -r $device $ROOTFSFLAGS /newroot
++		mount -t $rootfs -r $device $ROOTFSFLAGS /newroot || echo "Mount of rootfs failed."
+ 		init="$(echo "$CMDLINE" | busybox awk '/init=\// { gsub(/.*init=/,NIL,$0); gsub(/ .*/,NIL,$0); print }')"
+ 		if [ -z "$init" -o ! -x "/newroot$init" ]; then
+ 			init=/sbin/init
