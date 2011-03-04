@@ -14,3 +14,16 @@ Index: geninitrd
  		init="$(echo "$CMDLINE" | busybox awk '/init=\// { gsub(/.*init=/,NIL,$0); gsub(/ .*/,NIL,$0); print }')"
  		if [ -z "$init" -o ! -x "/newroot$init" ]; then
  			init=/sbin/init
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 12182)
++++ geninitrd	(kopia robocza)
+@@ -709,7 +709,7 @@
+ 			rootnr="$(busybox awk -v rootnode="${ROOT##/dev/}" '$4 == rootnode { print 256 * $1 + $2 }' /proc/partitions)"
+ 			# fallback to ls
+ 			if [ -z "$rootnr" ]; then
+-				rootnr="$(busybox ls -lL ${ROOT} | awk '{if (/^b/) { print 256 * $3 + $4; }}')"
++				rootnr="$(busybox ls -lL ${ROOT} | busybox awk '{if (/^b/) { print 256 * $3 + $4; }}')"
+ 			fi
+ 			if [ -n "$rootnr" ]; then
+ 				echo "$rootnr" > /proc/sys/kernel/real-root-dev
