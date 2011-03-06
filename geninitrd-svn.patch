@@ -27,3 +27,30 @@ Index: geninitrd
  			fi
  			if [ -n "$rootnr" ]; then
  				echo "$rootnr" > /proc/sys/kernel/real-root-dev
+Index: mod-sata.sh
+===================================================================
+--- mod-sata.sh	(wersja 12194)
++++ mod-sata.sh	(kopia robocza)
+@@ -17,7 +17,7 @@
+ 
+ # private until only mod-sata uses the function
+ find_modules_by_class() {
+-	local class=$1
++	local req_class=$1
+ 
+ 	# no pcimap, nothing to lookup from
+ 	if [ ! -f "$pcimap" ]; then
+@@ -28,10 +28,12 @@
+ 		return
+ 	fi
+ 
+-	set -- $($lspci -n | awk -vclass=$class '$2 == class":" {split($3, p, ":"); printf("0x0000%s 0x0000%s\n", p[1], p[2])}')
++	set -- $($lspci -n | awk -vclass=$req_class '$2 == class":" {split($3, p, ":"); printf("0x0000%s 0x0000%s\n", p[1], p[2])}')
+ 
+ 	local PCI_ANY_ID=0x0000ffff pci_module vendor device subvendor subdevice class class_mask driver_data
+ 	while read pci_module vendor device subvendor subdevice class class_mask driver_data; do
++		# match class
++		[ "$(($req_class & $class_mask))" = "$class" ] || continue
+ 		# match vendor
+ 		[ "$1" = "$vendor" ] || continue
+ 		# match device, allow PCI_ANY_ID
