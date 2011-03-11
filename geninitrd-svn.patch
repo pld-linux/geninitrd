@@ -54,3 +54,16 @@ Index: mod-sata.sh
  		# match vendor
  		[ "$1" = "$vendor" ] || continue
  		# match device, allow PCI_ANY_ID
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 12198)
++++ geninitrd	(kopia robocza)
+@@ -467,7 +467,7 @@
+ 		devpath=$(dm_node "$devpath")
+ 	fi
+ 
+-	if [ -L "$devpath" ] && ! is_lvm "$devpath"; then
++	if [ -L "$devpath" ] && ! is_lvm "$devpath" && ! is_luks "$devpath"; then
+ 		# sanitize things like:
+ 		# /dev/block/104:2 -> /dev/cciss/c0d0p2
+ 		devpath=$(readlink -f "$devpath")
