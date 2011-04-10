@@ -24,6 +24,7 @@ Requires:	coreutils
 Requires:	cpio
 Requires:	fileutils
 Requires:	genromfs
+Requires:	glibc-misc
 Requires:	gzip
 Requires:	mktemp >= 1.5-8
 Requires:	module-init-tools >= 3.2.2-6
