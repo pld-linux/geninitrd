@@ -1,4 +1,4 @@
-### TODO:
+# TODO:
 # - BUG: you can't set in /etc/mdadm.conf:
 #  DEVICE partitions containers
 #  (which is default BTW if none set). Generation of initrd will fail
@@ -6,16 +6,15 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	10000.32
-# leave rel 1 for ac
-Release:	6
+Version:	10000.33
+Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	9d75e347ff49312209e97ead93378f4a
+# Source0-md5:	f302536aa529f794ce491af07f5703ac
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
-Patch2:		%{name}-svn.patch
+#Patch2:		%{name}-svn.patch
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
 Requires:	awk
@@ -93,14 +92,13 @@ bieżących informacji zawartych w /etc/modules.conf.
 %patch0 -p1
 %patch1 -p1
 %endif
-%patch2 -p0
+#%patch2 -p0
 
 %build
 %{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
