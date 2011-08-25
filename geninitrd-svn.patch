@@ -1,69 +1,13 @@
-Index: geninitrd
-===================================================================
---- geninitrd	(wersja 12174)
-+++ geninitrd	(kopia robocza)
-@@ -772,9 +772,9 @@
- 			device=$rootdev
- 		fi
- 
--		[ -n "$ROOTFSFLAG" ] && ROOTFSFLAGS="-o $ROOTFSFLAGS"
-+		[ -n "$ROOTFSFLAGS" ] && ROOTFSFLAGS="-o $ROOTFSFLAGS"
- 
--		mount -t $rootfs -r $device $ROOTFSFLAGS /newroot
-+		mount -t $rootfs -r $device $ROOTFSFLAGS /newroot || echo "Mount of rootfs failed."
- 		init="$(echo "$CMDLINE" | busybox awk '/init=\// { gsub(/.*init=/,NIL,$0); gsub(/ .*/,NIL,$0); print }')"
- 		if [ -z "$init" -o ! -x "/newroot$init" ]; then
- 			init=/sbin/init
-Index: geninitrd
-===================================================================
---- geninitrd	(wersja 12182)
-+++ geninitrd	(kopia robocza)
-@@ -709,7 +709,7 @@
- 			rootnr="$(busybox awk -v rootnode="${ROOT##/dev/}" '$4 == rootnode { print 256 * $1 + $2 }' /proc/partitions)"
- 			# fallback to ls
- 			if [ -z "$rootnr" ]; then
--				rootnr="$(busybox ls -lL ${ROOT} | awk '{if (/^b/) { print 256 * $3 + $4; }}')"
-+				rootnr="$(busybox ls -lL ${ROOT} | busybox awk '{if (/^b/) { print 256 * $3 + $4; }}')"
- 			fi
- 			if [ -n "$rootnr" ]; then
- 				echo "$rootnr" > /proc/sys/kernel/real-root-dev
 Index: mod-sata.sh
 ===================================================================
---- mod-sata.sh	(wersja 12194)
+--- mod-sata.sh	(wersja 12334)
 +++ mod-sata.sh	(kopia robocza)
-@@ -17,7 +17,7 @@
- 
- # private until only mod-sata uses the function
- find_modules_by_class() {
--	local class=$1
-+	local req_class=$1
- 
- 	# no pcimap, nothing to lookup from
- 	if [ ! -f "$pcimap" ]; then
-@@ -28,10 +28,12 @@
- 		return
- 	fi
- 
--	set -- $($lspci -n | awk -vclass=$class '$2 == class":" {split($3, p, ":"); printf("0x0000%s 0x0000%s\n", p[1], p[2])}')
-+	set -- $($lspci -n | awk -vclass=$req_class '$2 == class":" {split($3, p, ":"); printf("0x0000%s 0x0000%s\n", p[1], p[2])}')
- 
+@@ -33,7 +33,7 @@
  	local PCI_ANY_ID=0x0000ffff pci_module vendor device subvendor subdevice class class_mask driver_data
  	while read pci_module vendor device subvendor subdevice class class_mask driver_data; do
-+		# match class
-+		[ "$(($req_class & $class_mask))" = "$class" ] || continue
+ 		# match class
+-		[ "$(($req_class & $class_mask))" = "$class" ] || continue
++		[ "$(($req_class & $class_mask))" = "$(($class))" ] || continue
  		# match vendor
  		[ "$1" = "$vendor" ] || continue
  		# match device, allow PCI_ANY_ID
-Index: geninitrd
-===================================================================
---- geninitrd	(wersja 12198)
-+++ geninitrd	(kopia robocza)
-@@ -467,7 +467,7 @@
- 		devpath=$(dm_node "$devpath")
- 	fi
- 
--	if [ -L "$devpath" ] && ! is_lvm "$devpath"; then
-+	if [ -L "$devpath" ] && ! is_lvm "$devpath" && ! is_luks "$devpath"; then
- 		# sanitize things like:
- 		# /dev/block/104:2 -> /dev/cciss/c0d0p2
- 		devpath=$(readlink -f "$devpath")
