@@ -16,7 +16,7 @@ diff -ur geninitrd-10000.18.orig/geninitrd.sysconfig geninitrd-10000.18/geninitr
 @@ -9,7 +9,7 @@
  
  ## Compression for the initrd.
- ## lzma / bzip2 / gzip.
+ ## xz / lzma / bzip2 / gzip / lzo.
 -## yes (default) = the 'best' available is chosen.
 +## yes = gzip (for backward compatibility)
  #COMPRESS=yes
