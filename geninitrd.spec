@@ -19,7 +19,7 @@ URL:		http://svn.pld-linux.org/trac/svn/wiki/packages/geninitrd
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
 Requires:	awk
-Requires:	busybox-initrd > 1.00-4
+Requires:	busybox-initrd >= 1.1.0
 Requires:	coreutils
 Requires:	cpio
 Requires:	fileutils
