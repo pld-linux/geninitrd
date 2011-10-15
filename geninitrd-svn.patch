@@ -1,13 +1,232 @@
+Index: mod-usbkbd.sh
+===================================================================
+--- mod-usbkbd.sh	(wersja 0)
++++ mod-usbkbd.sh	(wersja 12376)
+@@ -0,0 +1,45 @@
++#!/bin/sh
++SATA_RCSID='$Revision$ $Date$'
++
++# geninitrd mod: usbkbd
++
++# setup geninitrd module
++# @access	public
++setup_mod_usbkbd() {
++}
++
++find_modules_usbkbd() {
++	debug "Finding USB keyboard modules"
++
++	if [ "$(echo /sys/class/input/input*)" = "/sys/class/input/input*" ]; then
++		return
++	fi
++
++	local modules
++
++	for i in /sys/class/input/input*; do
++		[ ! -f $i/device/bInterfaceClass -o ! -f $i/device/bInterfaceProtocol ] && continue
++		bInterfaceClass=$(cat $i/device/bInterfaceClass)
++		bInterfaceProtocol=$(cat $i/device/bInterfaceProtocol)
++		if [ "$bInterfaceClass" = "03" -a "$bInterfaceProtocol" = "01" ]; then
++			module=$(readlink $i/device/driver/module)
++			module=$(basename $module)
++
++			if [ -n "$module" ]; then
++				debug "Found USB Keyboard: $(cat $i/name)"
++				modules="$modules $module"
++			fi
++		fi
++	done
++
++	if [ -n "$modules" ]; then
++		# usb controllers
++		for m in $(find_modules_by_class "0c03"); do
++			find_module $m
++		done
++
++		for m in $modules; do
++			find_module $m
++		done
++	fi
++}
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 12345)
++++ geninitrd	(kopia robocza)
+@@ -613,7 +613,7 @@
+ 			[ "$FIRMWAREDIR" != "$firmware" ] && inst_d /lib/firmware/$FIRMWAREDIR
+ 			inst /lib/firmware/$firmware /lib/firmware/$firmware
+ 		else
+-			die "firmware file /lib/firmware/$firmware nor /lib/firmware/$kernel/$firmware found."
++			warn "Possible missing firmware file /lib/firmware/$firmware or /lib/firmware/$kernel/$firmware for module $module."
+ 		fi
+ 	done
+ 
+@@ -915,7 +915,7 @@
+ 	warn "/proc filesystem not mounted, may cause wrong results or failure."
+ fi
+ 
+-geninitrd_load_mods ide luks multipath dmraid lvm md blkid udev tuxonice suspend fbsplash condecor bootsplash uvesafb nfs sata scsi
++geninitrd_load_mods ide luks multipath dmraid lvm md blkid udev tuxonice suspend fbsplash condecor bootsplash uvesafb nfs sata scsi usbkbd
+ 
+ while [ $# -gt 0 ]; do
+ 	case $1 in
+@@ -1157,6 +1157,9 @@
+ 	find_module "$FBMODULE"
+ fi
+ 
++# autodetect USB keyboards
++find_modules_usbkbd
++
+ # allow forcing loading SCSI and/or IDE modules
+ # XXX: where ADDSCSI cames from? drop?
+ if is_yes "$ADDSCSI"; then
+Index: mod-luks.sh
+===================================================================
+--- mod-luks.sh	(wersja 12345)
++++ mod-luks.sh	(kopia robocza)
+@@ -119,7 +119,7 @@
+ 
+ 	while read dst src key opt; do
+ 		[ -z "$dst" -o "${dst#\#}" != "$dst" ] && continue
+-		[ "$src" != "$LUKSDEV" ] && continue
++		[ "$src" != "$LUKSDEV" ] && [ "$(readlink -f $src)" != "$LUKSDEV" ] && continue
+ 
+ 		if [ -n "$key" -a "x$key" != "xnone" ]; then
+ 			if test -e "$key" ; then
+@@ -155,11 +155,23 @@
+ 			# cryptsetup can be called twice and in case on crypt on lvm only second
+ 			# will succeed because there will be no src device in first cryptsetup call
+ 			# this can be called multiple times, before lvm and after lvm.
+-			if [ -e "$src" ]; then
++			luksdev='$src'
++			if [ \${luksdev##/dev/disk/by-uuid/} != \${luksdev} ]; then
++			        src_uuid=\${luksdev##/dev/disk/by-uuid/}
++			        while read x y z name; do
++			                found_uuid=\$(cryptsetup luksUUID /dev/\${name} 2>/dev/null)
++			                if [ "\$found_uuid" = "\$src_uuid" ]; then
++			                        luksdev=/dev/\$name
++			                        break
++			                fi
++			        done < /proc/partitions
++			fi
++
++			if [ -e "\$luksdev" ]; then
+ 				crypt_status=\$(cryptsetup status '$dst')
+ 				if [ "\${crypt_status%%is inactive.}" != "\$crypt_status" ]; then
+ 					# is inactive
+-					cryptsetup ${keyfile:+-d $keyfile} luksOpen '$src' '$dst' <&1
++					cryptsetup ${keyfile:+-d $keyfile} luksOpen "\$luksdev" '$dst' <&1
+ 				fi
+ 			fi
+ 
+Index: functions
+===================================================================
+--- functions	(wersja 12345)
++++ functions	(kopia robocza)
+@@ -166,3 +166,46 @@
+ 	local node="$1"
+ 	printf "/dev/mapper/%s" $(dm_name "$node")
+ }
++
++# find modules by class eg
++# find_modules_by_class 0106 - finds modules for SATA devices in the system
++# find_modules_by_class 0c03 - finds modules for USB controllers
++find_modules_by_class() {
++	local req_class="$1"
++
++	pcimap="/lib/modules/$kernel/modules.pcimap"
++
++	lspci=$(find_tool /sbin/lspci)
++	if [ ! -x "$lspci" ]; then
++		warn "Failed to execute lspci. Is pciutils package installed?"
++	fi
++
++	# no pcimap, nothing to lookup from
++	if [ ! -f "$pcimap" ]; then
++		return
++	fi
++
++	if [ -z "$lspci" ]; then
++		return
++	fi
++
++	set -- $($lspci -n | awk -vclass=$req_class '$2 == class":" {split($3, p, ":"); printf("0x0000%s 0x0000%s\n", p[1], p[2])}')
++
++	req_class="0x${req_class}00"
++
++	local PCI_ANY_ID=0xffffffff pci_module vendor device subvendor subdevice class class_mask driver_data
++	while read pci_module vendor device subvendor subdevice class class_mask driver_data; do
++		# ignore program interface (last two digits) - we want any
++		class_mask=$(($class_mask & 0xffffff00))
++		# some devices (like hcd) have very specific class
++		class=$(($class & $class_mask))
++		[ "$(($req_class & $class_mask))" = "$class" ] || continue
++		# match vendor
++		[ "$1" = "$vendor" -o "$vendor" = "$PCI_ANY_ID" ] || continue
++		# match device, allow PCI_ANY_ID
++		[ "$2" = "$device" -o "$device" = "$PCI_ANY_ID" ] || continue
++
++		echo "$pci_module"
++	done < $pcimap
++}
++
+Index: Makefile
+===================================================================
+--- Makefile	(wersja 12345)
++++ Makefile	(kopia robocza)
+@@ -1,6 +1,6 @@
+ # when making release, make sure you do it as RELEASE document describes
+ VERSION		:= 12345
+-MODS		:= ide luks multipath dmraid lvm md blkid udev tuxonice suspend fbsplash condecor bootsplash uvesafb nfs sata scsi
++MODS		:= ide luks multipath dmraid lvm md blkid udev tuxonice suspend fbsplash condecor bootsplash uvesafb nfs sata scsi usbkbd
+ FILES_MODS  := $(MODS:%=mod-%.sh)
+ FILES_ADDON := extract-ikconfig
+ FILES		:= Makefile geninitrd.sysconfig geninitrd functions $(FILES_MODS) $(FILES_ADDON) geninitrd.8 geninitrd.8.xml ChangeLog
 Index: mod-sata.sh
 ===================================================================
---- mod-sata.sh	(wersja 12334)
+--- mod-sata.sh	(wersja 12345)
 +++ mod-sata.sh	(kopia robocza)
-@@ -33,7 +33,7 @@
- 	local PCI_ANY_ID=0x0000ffff pci_module vendor device subvendor subdevice class class_mask driver_data
- 	while read pci_module vendor device subvendor subdevice class class_mask driver_data; do
- 		# match class
--		[ "$(($req_class & $class_mask))" = "$class" ] || continue
-+		[ "$(($req_class & $class_mask))" = "$(($class))" ] || continue
- 		# match vendor
- 		[ "$1" = "$vendor" ] || continue
- 		# match device, allow PCI_ANY_ID
+@@ -6,43 +6,8 @@
+ # setup geninitrd module
+ # @access	public
+ setup_mod_sata() {
+-	lspci=$(find_tool /sbin/lspci)
+-
+-	pcimap="/lib/modules/$kernel/modules.pcimap"
+-
+-	if [ ! -x "$lspci" ]; then
+-		warn "Failed to execute lspci. Is pciutils package installed?"
+-	fi
+ }
+ 
+-# private until only mod-sata uses the function
+-find_modules_by_class() {
+-	local req_class=$1
+-
+-	# no pcimap, nothing to lookup from
+-	if [ ! -f "$pcimap" ]; then
+-		return
+-	fi
+-
+-	if [ -z "$lspci" ]; then
+-		return
+-	fi
+-
+-	set -- $($lspci -n | awk -vclass=$req_class '$2 == class":" {split($3, p, ":"); printf("0x0000%s 0x0000%s\n", p[1], p[2])}')
+-
+-	local PCI_ANY_ID=0x0000ffff pci_module vendor device subvendor subdevice class class_mask driver_data
+-	while read pci_module vendor device subvendor subdevice class class_mask driver_data; do
+-		# match class
+-		[ "$(($req_class & $class_mask))" = "$(($class))" ] || continue
+-		# match vendor
+-		[ "$1" = "$vendor" ] || continue
+-		# match device, allow PCI_ANY_ID
+-		[ "$2" = "$device" -o $device = $PCI_ANY_ID ] || continue
+-
+-		echo "$pci_module"
+-	done < $pcimap
+-}
+-
+ find_modules_sata() {
+ 	debug "Finding SATA modules (class=0x0106)"
+ 
