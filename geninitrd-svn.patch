@@ -54,3 +54,16 @@ Index: functions
 +	'
  }
  
+Index: functions
+===================================================================
+--- functions	(wersja 12391)
++++ functions	(kopia robocza)
+@@ -213,7 +213,7 @@
+ 					}
+ 					END { 
+ 						   # xhci/ehci/ohci/uhci hack to preserve such order
+-						   printf "%s %s %s %s", xhci, ehci, ohci, uhci;
++						   printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
+ 						   for (i in modules) { printf "%s ", modules[i]; };
+ 					}
+ 	'
