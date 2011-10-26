@@ -67,3 +67,16 @@ Index: functions
  						   for (i in modules) { printf "%s ", modules[i]; };
  					}
  	'
+Index: functions
+===================================================================
+--- functions	(wersja 12392)
++++ functions	(kopia robocza)
+@@ -189,7 +189,7 @@
+ 		return
+ 	fi
+ 
+-	lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
++	LC_ALL=C lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
+ 					BEGIN      { skip_modules[1]=""; modules[1]=""; xhci=""; ehci=""; ohci=""; uhci="" }
+ 					/^Slot:/   { found=0 }
+ 					/^Class:/  { if (req_class == $2) { found=1 } }
