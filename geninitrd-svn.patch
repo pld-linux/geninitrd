@@ -82,13 +82,13 @@ Index: functions
  					/^Class:/  { if (req_class == $2) { found=1 } }
 Index: geninitrd
 ===================================================================
---- geninitrd	(wersja 12408)
+--- geninitrd	(wersja 12380)
 +++ geninitrd	(kopia robocza)
 @@ -18,6 +18,7 @@
  # list of geninitrd modules which need setup routine after commandline args parsing
  GENINITRD_MODS=""
  COMPRESS=yes
-+STRIP=yes
++STRIP=strip
  target=""
  kernel=""
  force=""
@@ -96,26 +96,34 @@ Index: geninitrd
  	echo "Usage: $PROGRAM [--version] [-v] [-f] [--ifneeded] [--preload <module>]"
  	echo "       [--with=<module>] [--image-version] [--fstab=<fstab>] [--nocompress]"
  	echo "       [--compress=yes|xz|lzma|bzip2|gzip|lzo]"
-+	echo "       [--nostrip ]"
++	echo "       [--nostrip ] [--strip PATH/strip] [--strip=PATH/strip]"
  	echo "       [--initrdfs=rom|initramfs|ext2|cram] [--modules-conf=<modules.conf>]"
  	echo "       [--with-bootsplash] [--without-bootsplash]"
  	echo "       [--with-fbsplash] [--without-fbsplash]"
-@@ -630,6 +632,9 @@
+@@ -630,6 +632,10 @@
  		inst_d "/lib/modules/$kernel/$MODULEDIR"
  		cp -a "/lib/modules/$kernel/$mod" "$DESTDIR/lib/modules/$kernel/$mod"
  		gunzip "$DESTDIR/lib/modules/$kernel/$mod" 2> /dev/null
-+		if [ -x /usr/bin/strip ] && is_yes "$STRIP"; then
-+			/usr/bin/strip --strip-unneeded --remove-section=.comment --remove-section=.note.GNU-stack "$DESTDIR/lib/modules/$kernel/$mod"
++		if [ "$STRIP" ] ; then
++			mod_nocomp=${mod%.gz}
++			$STRIP --strip-unneeded --remove-section=.comment --remove-section=.note.GNU-stack "$DESTDIR/lib/modules/$kernel/$mod_nocomp"
 +		fi
  	done
  }
  
-@@ -1017,6 +1022,9 @@
+@@ -1017,6 +1023,16 @@
  	--nocompress)
  		COMPRESS=no
  		;;
 +	--nostrip)
-+		STRIP=no
++		STRIP=
++		;;
++	--strip=*)
++		STRIP="${1#--strip=}"
++		;;
++	--strip)
++		STRIP=$2
++		shift
 +		;;
  	--ifneeded)
  		ifneeded=1
