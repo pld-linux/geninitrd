@@ -41,6 +41,7 @@ Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
 %endif
+Suggests:	pciutils
 # suggest for blkid
 %if "%{pld_release}" != "ac"
 Suggests:	util-linux-initrd
