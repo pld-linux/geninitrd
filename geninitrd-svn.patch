@@ -106,7 +106,7 @@ Index: geninitrd
  		gunzip "$DESTDIR/lib/modules/$kernel/$mod" 2> /dev/null
 +		if [ "$STRIP" ] ; then
 +			mod_nocomp=${mod%.gz}
-+			$STRIP --strip-unneeded --remove-section=.comment --remove-section=.note.GNU-stack "$DESTDIR/lib/modules/$kernel/$mod_nocomp"
++			$STRIP -g --remove-section=.comment "$DESTDIR/lib/modules/$kernel/$mod_nocomp"
 +		fi
  	done
  }
