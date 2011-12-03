@@ -7,7 +7,7 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
 Version:	12432
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
@@ -52,7 +52,7 @@ Conflicts:	grubby < 5.0.4-3.1
 %else
 Conflicts:	grubby < 6.0.24-3
 %endif
-Conflicts:	udev-initrd < 1:104
+Conflicts:	udev-initrd < 1:168
 Conflicts:	xz < 4.999.9
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
