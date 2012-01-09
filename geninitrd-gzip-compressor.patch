@@ -1,0 +1,24 @@
+diff -ur geninitrd-10000.18.orig/geninitrd geninitrd-10000.18/geninitrd
+--- geninitrd-10000.18.orig/geninitrd	2009-08-31 21:31:46.000000000 +0200
++++ geninitrd-10000.18/geninitrd	2009-09-19 22:40:21.932301167 +0200
+@@ -795,6 +795,8 @@
+ 	# a specified one, take it
+ 	if ! is_yes "$mode"; then
+ 		compressors="$mode"
++	else
++		compressors="gzip"
+ 	fi
+ 
+ 	debug "finding compressor: $compressors (via $mode)"
+diff -ur geninitrd-10000.18.orig/geninitrd.sysconfig geninitrd-10000.18/geninitrd.sysconfig
+--- geninitrd-10000.18.orig/geninitrd.sysconfig	2009-08-31 21:31:46.000000000 +0200
++++ geninitrd-10000.18/geninitrd.sysconfig	2009-09-19 22:41:49.252501100 +0200
+@@ -9,7 +9,7 @@
+ 
+ ## Compression for the initrd.
+ ## xz / lzma / bzip2 / gzip / lzo.
+-## yes (default) = the 'best' available is chosen.
++## yes = gzip (for backward compatibility)
+ #COMPRESS=yes
+ 
+ ## What filesystem to use (rom or ext2)?
