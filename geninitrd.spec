@@ -14,7 +14,7 @@ Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	7bab5ccd79af683dd3162f660e552332
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
-#Patch2:		%{name}-svn.patch
+#Patch2:	%{name}-svn.patch
 URL:		http://svn.pld-linux.org/trac/svn/wiki/packages/geninitrd
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
@@ -23,7 +23,6 @@ Requires:	busybox-initrd >= 1.1.0
 Requires:	coreutils
 Requires:	cpio
 Requires:	fileutils
-Requires:	genromfs
 Requires:	glibc-misc
 Requires:	gzip
 Requires:	mktemp >= 1.5-8
@@ -41,6 +40,7 @@ Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
 %endif
+Suggests:	genromfs
 Suggests:	pciutils
 # suggest for blkid
 %if "%{pld_release}" != "ac"
