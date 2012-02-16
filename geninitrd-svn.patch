@@ -1,130 +1,15 @@
-Index: functions
-===================================================================
---- functions	(wersja 12390)
-+++ functions	(kopia robocza)
-@@ -189,23 +189,33 @@
- 		return
- 	fi
- 
--	set -- $($lspci -n | awk -vclass=$req_class '$2 == class":" {split($3, p, ":"); printf("0x0000%s 0x0000%s\n", p[1], p[2])}')
--
--	req_class="0x${req_class}00"
--
--	local PCI_ANY_ID=0xffffffff pci_module vendor device subvendor subdevice class class_mask driver_data
--	while read pci_module vendor device subvendor subdevice class class_mask driver_data; do
--		# ignore program interface (last two digits) - we want any
--		class_mask=$(($class_mask & 0xffffff00))
--		# some devices (like hcd) have very specific class
--		class=$(($class & $class_mask))
--		[ "$(($req_class & $class_mask))" = "$class" ] || continue
--		# match vendor
--		[ "$1" = "$vendor" -o "$vendor" = "$PCI_ANY_ID" ] || continue
--		# match device, allow PCI_ANY_ID
--		[ "$2" = "$device" -o "$device" = "$PCI_ANY_ID" ] || continue
--
--		echo "$pci_module"
--	done < $pcimap
-+	lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
-+					BEGIN      { skip_modules[1]=""; modules[1]=""; xhci=""; ehci=""; ohci=""; uhci="" }
-+					/^Slot:/   { found=0 }
-+					/^Class:/  { if (req_class == $2) { found=1 } }
-+					/^Driver:/ { if (found) {
-+								module=$2;
-+								if (module == "xhci_hcd") {
-+									xhci="xhci_hcd"
-+								} else if (module == "ehci_hcd") {
-+									ehci="ehci_hcd"
-+								} else if (module == "ohci_hcd") {
-+									ohci="ohci_hcd"
-+								} else if (module == "uhci_hcd") {
-+									uhci="uhci_hcd"
-+								} else if (!(module in skip_modules)) {
-+									modules[cnt]=module
-+								}
-+								skip_modules[cnt]=module;
-+								cnt++;
-+						   };
-+						   found=0
-+					}
-+					END { 
-+						   # xhci/ehci/ohci/uhci hack to preserve such order
-+						   printf "%s %s %s %s", xhci, ehci, ohci, uhci;
-+						   for (i in modules) { printf "%s ", modules[i]; };
-+					}
-+	'
- }
- 
-Index: functions
-===================================================================
---- functions	(wersja 12391)
-+++ functions	(kopia robocza)
-@@ -213,7 +213,7 @@
- 					}
- 					END { 
- 						   # xhci/ehci/ohci/uhci hack to preserve such order
--						   printf "%s %s %s %s", xhci, ehci, ohci, uhci;
-+						   printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
- 						   for (i in modules) { printf "%s ", modules[i]; };
- 					}
- 	'
-Index: functions
-===================================================================
---- functions	(wersja 12392)
-+++ functions	(kopia robocza)
-@@ -189,7 +189,7 @@
- 		return
- 	fi
- 
--	lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
-+	LC_ALL=C lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
- 					BEGIN      { skip_modules[1]=""; modules[1]=""; xhci=""; ehci=""; ohci=""; uhci="" }
- 					/^Slot:/   { found=0 }
- 					/^Class:/  { if (req_class == $2) { found=1 } }
 Index: geninitrd
 ===================================================================
---- geninitrd	(wersja 12380)
+--- geninitrd	(wersja 12474)
 +++ geninitrd	(kopia robocza)
-@@ -18,6 +18,7 @@
- # list of geninitrd modules which need setup routine after commandline args parsing
- GENINITRD_MODS=""
- COMPRESS=yes
-+STRIP=strip
- target=""
- kernel=""
- force=""
-@@ -47,6 +48,7 @@
- 	echo "Usage: $PROGRAM [--version] [-v] [-f] [--ifneeded] [--preload <module>]"
- 	echo "       [--with=<module>] [--image-version] [--fstab=<fstab>] [--nocompress]"
- 	echo "       [--compress=yes|xz|lzma|bzip2|gzip|lzo]"
-+	echo "       [--nostrip ] [--strip PATH/strip] [--strip=PATH/strip]"
- 	echo "       [--initrdfs=rom|initramfs|ext2|cram] [--modules-conf=<modules.conf>]"
- 	echo "       [--with-bootsplash] [--without-bootsplash]"
- 	echo "       [--with-fbsplash] [--without-fbsplash]"
-@@ -630,6 +632,10 @@
- 		inst_d "/lib/modules/$kernel/$MODULEDIR"
- 		cp -a "/lib/modules/$kernel/$mod" "$DESTDIR/lib/modules/$kernel/$mod"
- 		gunzip "$DESTDIR/lib/modules/$kernel/$mod" 2> /dev/null
-+		if [ "$STRIP" ] ; then
-+			mod_nocomp=${mod%.gz}
-+			$STRIP -g --remove-section=.comment "$DESTDIR/lib/modules/$kernel/$mod_nocomp"
-+		fi
- 	done
- }
+@@ -792,8 +792,8 @@
+ 				if (c ~ "^" dev_pattern "$") partition = c;
+ 			}
  
-@@ -1017,6 +1023,16 @@
- 	--nocompress)
- 		COMPRESS=no
- 		;;
-+	--nostrip)
-+		STRIP=
-+		;;
-+	--strip=*)
-+		STRIP="${1#--strip=}"
-+		;;
-+	--strip)
-+		STRIP=$2
-+		shift
-+		;;
- 	--ifneeded)
- 		ifneeded=1
- 		;;
+-			$4 ~ partition { maj = $1; min = $2; }
+-			$1 ~ maj && $2 ~ min { partition = $4; }
++			$4 == partition { maj = $1; min = $2; }
++			$1 == maj && $2 == min { partition = $4; }
+ 
+ 			END {
+ 				if (maj >= 0 && min >= 0) {
