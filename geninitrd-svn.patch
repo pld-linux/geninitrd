@@ -1,15 +1,85 @@
-Index: geninitrd
+Index: functions
 ===================================================================
---- geninitrd	(wersja 12474)
-+++ geninitrd	(kopia robocza)
-@@ -792,8 +792,8 @@
- 				if (c ~ "^" dev_pattern "$") partition = c;
- 			}
+--- functions	(wersja 12519)
++++ functions	(kopia robocza)
+@@ -167,10 +167,21 @@
+ 	printf "/dev/mapper/%s" $(dm_name "$node")
+ }
  
--			$4 ~ partition { maj = $1; min = $2; }
--			$1 ~ maj && $2 ~ min { partition = $4; }
-+			$4 == partition { maj = $1; min = $2; }
-+			$1 == maj && $2 == min { partition = $4; }
+-# find modules by class eg
++# find modules by class
+ # find_modules_by_class 0106 - finds modules for SATA devices in the system
+ # find_modules_by_class 0c03 - finds modules for USB controllers
+ find_modules_by_class() {
++	if (modprobe --version | grep -q "^kmod"); then
++		find_modules_by_class_kmod $@
++	else
++		find_modules_by_class_mit $@
++	fi
++}
++
++# find modules by class (kmod version)
++# find_modules_by_class 0106 - finds modules for SATA devices in the system
++# find_modules_by_class 0c03 - finds modules for USB controllers
++find_modules_by_class_kmod() {
+ 	local req_class="$1" i j modaliases
  
- 			END {
- 				if (maj >= 0 && min >= 0) {
+ 	if [ ! -d "/sys/devices" ]; then
+@@ -206,3 +217,56 @@
+ 		}
+ 	'
+ }
++
++# find modules by class (module-init-tools version)
++# find_modules_by_class 0106 - finds modules for SATA devices in the system
++# find_modules_by_class 0c03 - finds modules for USB controllers
++find_modules_by_class_mit() {
++	local req_class="$1"
++
++	pcimap="/lib/modules/$kernel/modules.pcimap"
++
++	lspci=$(find_tool /sbin/lspci)
++	if [ ! -x "$lspci" ]; then
++		warn "Failed to execute lspci. Is pciutils package installed?"
++	fi
++
++	# no pcimap, nothing to lookup from
++	if [ ! -f "$pcimap" ]; then
++			warn "No $pcimap file. Cannot find modules for desired class!"
++		return
++	fi
++
++	if [ -z "$lspci" ]; then
++		return
++	fi
++
++	LC_ALL=C lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
++					BEGIN      { skip_modules[notexisting_module]=""; modules[1]=""; xhci=""; ehci=""; ohci=""; uhci="" }
++					/^Slot:/   { found=0 }
++					/^Class:/  { if (req_class == $2) { found=1 } }
++					/^Driver:/ { if (found) {
++								module=$2;
++								if (module == "xhci_hcd") {
++									xhci="xhci_hcd"
++								} else if (module == "ehci_hcd") {
++									ehci="ehci_hcd"
++								} else if (module == "ohci_hcd") {
++									ohci="ohci_hcd"
++								} else if (module == "uhci_hcd") {
++									uhci="uhci_hcd"
++								} else if (!(module in skip_modules)) {
++									modules[cnt]=module
++								}
++								skip_modules[module]=1;
++						   };
++						   found=0
++					}
++					END { 
++						   # xhci/ehci/ohci/uhci hack to preserve such order
++						   printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
++						   for (i in modules) { printf "%s ", modules[i]; };
++					}
++	'
++}
++
+
