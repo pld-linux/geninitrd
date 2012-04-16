@@ -1,85 +1,201 @@
-Index: functions
+Index: mod-udev.sh
 ===================================================================
---- functions	(wersja 12519)
-+++ functions	(kopia robocza)
-@@ -167,10 +167,21 @@
- 	printf "/dev/mapper/%s" $(dm_name "$node")
+--- mod-udev.sh	(wersja 12531)
++++ mod-udev.sh	(kopia robocza)
+@@ -55,7 +55,9 @@
+ 
+ 	local e
+ 	for e in ata_id cdrom_id collect firmware scsi_id v4l_id; do
+-		inst_exec $initrd_dir/udev/$e /lib/udev/$e
++		if [ -e "$initrd_dir/udev/$e" ]; then
++			inst_exec $initrd_dir/udev/$e /lib/udev/$e
++		fi
+ 	done
+ 
+ 	# blkid installed by mod-blkid
+Index: tests/partitions2
+===================================================================
+--- tests/partitions2	(wersja 0)
++++ tests/partitions2	(wersja 12546)
+@@ -0,0 +1,24 @@
++
++major minor  #blocks  name
++
++   3        0   78150744 hda
++   3        1     216846 hda1
++   3        2   20482875 hda2
++   3        3      72292 hda3
++   3        4          1 hda4
++   3        5     136521 hda5
++   3        6    9775521 hda6
++   3        7   46941898 hda7
++   3        8     522081 hda8
++   3       64   78150744 hdb
++   3       65     128488 hdb1
++   3       66      64260 hdb2
++   3       67   10241437 hdb3
++   3       68          1 hdb4
++   3       69    5116671 hdb5
++   3       70    9775521 hdb6
++   3       71    9775521 hdb7
++   3       72    9775521 hdb8
++   3       73   33270583 hdb9
++ 254        0    5107712 dm-0
++   9        6    9775360 md6
+Index: tests/initramfs_switchroot.sh
+===================================================================
+--- tests/initramfs_switchroot.sh	(wersja 12531)
++++ tests/initramfs_switchroot.sh	(kopia robocza)
+@@ -3,6 +3,7 @@
+ 
+ . ./setup-test.sh
+ proc=${proc:-/proc}
++partitions=$proc/partitions
+ flags=$-
+ 
+ mount() {
+@@ -10,7 +11,7 @@
  }
  
--# find modules by class eg
-+# find modules by class
- # find_modules_by_class 0106 - finds modules for SATA devices in the system
- # find_modules_by_class 0c03 - finds modules for USB controllers
- find_modules_by_class() {
-+	if (modprobe --version | grep -q "^kmod"); then
-+		find_modules_by_class_kmod $@
-+	else
-+		find_modules_by_class_mit $@
-+	fi
-+}
-+
-+# find modules by class (kmod version)
-+# find_modules_by_class 0106 - finds modules for SATA devices in the system
-+# find_modules_by_class 0c03 - finds modules for USB controllers
-+find_modules_by_class_kmod() {
- 	local req_class="$1" i j modaliases
- 
- 	if [ ! -d "/sys/devices" ]; then
-@@ -206,3 +217,56 @@
- 		}
- 	'
+ mknod() {
+-	echo "mknod $@"
++	: echo "mknod $@"
  }
+ 
+ 	# parse 'root=xxx' kernel commandline
+@@ -21,7 +22,7 @@
+ 
+ 		device=
+ 		eval "$(
+-		busybox awk -v c="$ROOT" '
++		busybox awk -v root="$ROOT" '
+ 			BEGIN {
+ 				num_pattern_short = "[0-9a-f][0-9a-f][0-9a-f]";
+ 				num_pattern = "[0-9a-f]" num_pattern_short;
+@@ -29,15 +30,26 @@
+ 				partition = "";
+ 				min = -1; maj = -1;
+ 
+-				sub("^0x", "", c);
+-				if (c ~ "^" num_pattern_short "$") sub("^", "0", c);
+-				if (c ~ "^" num_pattern  "$") {
+-					maj = sprintf("%d",substr(c,1,2));
+-					min = sprintf("%d",substr(c,3));
++				# see if we have /dev/hdX or hdX, we can just take partition name
++				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {
++					partition = root
++					sub("^/dev/", "", partition);
++					printf("# partition regexp=%s;\n", partition);
 +
-+# find modules by class (module-init-tools version)
-+# find_modules_by_class 0106 - finds modules for SATA devices in the system
-+# find_modules_by_class 0c03 - finds modules for USB controllers
-+find_modules_by_class_mit() {
-+	local req_class="$1"
-+
-+	pcimap="/lib/modules/$kernel/modules.pcimap"
-+
-+	lspci=$(find_tool /sbin/lspci)
-+	if [ ! -x "$lspci" ]; then
-+		warn "Failed to execute lspci. Is pciutils package installed?"
-+	fi
-+
-+	# no pcimap, nothing to lookup from
-+	if [ ! -f "$pcimap" ]; then
-+			warn "No $pcimap file. Cannot find modules for desired class!"
-+		return
-+	fi
-+
-+	if [ -z "$lspci" ]; then
-+		return
-+	fi
-+
-+	LC_ALL=C lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
-+					BEGIN      { skip_modules[notexisting_module]=""; modules[1]=""; xhci=""; ehci=""; ohci=""; uhci="" }
-+					/^Slot:/   { found=0 }
-+					/^Class:/  { if (req_class == $2) { found=1 } }
-+					/^Driver:/ { if (found) {
-+								module=$2;
-+								if (module == "xhci_hcd") {
-+									xhci="xhci_hcd"
-+								} else if (module == "ehci_hcd") {
-+									ehci="ehci_hcd"
-+								} else if (module == "ohci_hcd") {
-+									ohci="ohci_hcd"
-+								} else if (module == "uhci_hcd") {
-+									uhci="uhci_hcd"
-+								} else if (!(module in skip_modules)) {
-+									modules[cnt]=module
-+								}
-+								skip_modules[module]=1;
-+						   };
-+						   found=0
++				} else {
++					# unify values first
++					if (root ~ "^" num_pattern_short "$")  {
++						# change "303" => "0x0303"
++						root = "0x0" root
++					} else if (root ~ "^" num_pattern "$")  {
++						# change "0303" => "0x0303"
++						root = "0x" root
 +					}
-+					END { 
-+						   # xhci/ehci/ohci/uhci hack to preserve such order
-+						   printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
-+						   for (i in modules) { printf "%s ", modules[i]; };
-+					}
-+	'
-+}
 +
++					maj = sprintf("%d", "0x" substr(root, 3, 2));
++					min = sprintf("%d", "0x" substr(root, 5, 2));
++					printf("# BEGIN: maj=%s, min=%s\n", maj, min);
+ 				}
+-				if (c ~ "^\/dev\/" dev_pattern "$") sub("^/dev/","", c);
+-				if (c ~ "^" dev_pattern "$") partition = c;
+-				printf("# BEGIN: partition=%s; maj=%s, min=%s\n", partition, maj, min);
+ 			}
+ 			{ printf("# maj:[%s], min:[%s], part:[%s]\n", $1, $2, $4) }
+ 
+@@ -52,7 +64,7 @@
+ 					printf("device=/dev/%s;\n", partition);
+ 				}
+ 			}
+-			' $proc/partitions
++			' $partitions
+ 		)"
+ 
+ 		if [ -z "$device" ]; then
+@@ -74,7 +86,7 @@
+ #	echo "init=$init"
+ }
+ 
+-proc=.
++partitions=./partitions
+ ROOTFS=xfs
+ 
+ # We support passing root as hda3 /dev/hda3 0303 0x0303 and 303
+@@ -102,3 +114,10 @@
+ runtest <<'EOF'
+ mount -t xfs -r /dev/sda3 /newroot
+ EOF
++
++# lilo for dm-0
++partitions=./partitions2
++ROOT=fe00
++runtest <<'EOF'
++mount -t xfs -r /dev/dm-0 /newroot
++EOF
+Index: geninitrd
+===================================================================
+--- geninitrd	(wersja 12531)
++++ geninitrd	(kopia robocza)
+@@ -759,6 +759,7 @@
+ initrd_gen_setrootdev() {
+ 	debug "Adding rootfs finding based on kernel cmdline root= option support."
+ 	busybox_applet ls
++	debug "Current /proc/partitions:\n$(sed -e 's,^,> ,' /proc/partitions)"
+ 	add_linuxrc <<-'EOF'
+ 		if [ "${ROOT##/dev/}" != "${ROOT}" ]; then
+ 			rootnr="$(busybox awk -v rootnode="${ROOT##/dev/}" '$4 == rootnode { print 256 * $1 + $2 }' /proc/partitions)"
+@@ -785,7 +786,7 @@
+ 	# We support passing root as hda3 /dev/hda3 0303 0x0303 and 303
+ 	add_linuxrc <<-'EOF'
+ 		device=
+-		eval "$(busybox awk -v c="$ROOT" '
++		eval "$(busybox awk -v root="$ROOT" '
+ 			BEGIN {
+ 				num_pattern_short = "[0-9a-f][0-9a-f][0-9a-f]";
+ 				num_pattern = "[0-9a-f]" num_pattern_short;
+@@ -793,14 +794,24 @@
+ 				partition = "";
+ 				min = -1; maj = -1;
+ 
+-				sub("^0x", "", c);
+-				if (c ~ "^" num_pattern_short "$") sub("^", "0", c);
+-				if (c ~ "^" num_pattern  "$") {
+-					maj = sprintf("%d",substr(c,1,2));
+-					min = sprintf("%d",substr(c,3));
++				# see if we have /dev/hdX or hdX, we can just take partition name
++				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {
++					partition = root
++					sub("^/dev/", "", partition);
++
++				} else {
++					# unify values first
++					if (root ~ "^" num_pattern_short "$")  {
++						# change "303" => "0x0303"
++						root = "0x0" root
++					} else if (root ~ "^" num_pattern "$")  {
++						# change "0303" => "0x0303"
++						root = "0x" root
++					}
++
++					maj = sprintf("%d", "0x" substr(root, 3, 2));
++					min = sprintf("%d", "0x" substr(root, 5, 2));
+ 				}
+-				if (c ~ "^\/dev\/" dev_pattern "$") sub("^/dev/","", c);
+-				if (c ~ "^" dev_pattern "$") partition = c;
+ 			}
+ 
+ 			partition && $4 == partition { maj = $1; min = $2; }
+@@ -1432,6 +1443,8 @@
+ initrd_gen_fbsplash
+ initrd_gen_fbcondecor
+ 
++debug "Current /linuxrc:\n$(sed -e 's,^,> ,' $DESTDIR/linuxrc)"
++
+ IMAGE=$(mktemp -t initrd.img-XXXXXX) || die "mktemp failed"
+ 
+ IMAGESIZE=$(du -ks $DESTDIR | awk '{print int(($1+1023+512)/1024)*1024}')
 
