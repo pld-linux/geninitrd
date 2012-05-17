@@ -54,6 +54,7 @@ Conflicts:	grubby < 6.0.24-3
 %endif
 Conflicts:	kmod < 7-2
 Conflicts:	module-init-tools < 3.2.2-6
+Conflicts:	pciutils < 2.2.9
 Conflicts:	udev-initrd < 1:168
 Conflicts:	xz < 4.999.9
 BuildArch:	noarch
