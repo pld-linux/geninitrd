@@ -11,7 +11,7 @@ Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	1b4ed4548936a52f297178a91450aaef
+# Source0-md5:	1761d2097523b5c248c5846ebd3685d3
 Patch0:		%{name}-romfs.patch
 Patch1:		%{name}-gzip-compressor.patch
 #Patch2:		%{name}-svn.patch
