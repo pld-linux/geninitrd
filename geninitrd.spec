@@ -12,10 +12,8 @@ License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	bd47ea3ca6dbeea39af6bc5eb1d12e5a
-Patch0:		%{name}-romfs.patch
-Patch1:		%{name}-gzip-compressor.patch
-# svn diff http://svn.pld-linux.org/svn/geninitrd/trunk -r 12585:HEAD > geninitrd-svn.patch
-Patch2:		%{name}-svn.patch
+# svn diff http://svn.pld-linux.org/svn/geninitrd/trunk -r 12639:HEAD > geninitrd-svn.patch
+Patch0:		%{name}-svn.patch
 URL:		http://svn.pld-linux.org/trac/svn/wiki/packages/geninitrd
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
@@ -32,15 +30,10 @@ Requires:	pci-database >= 0.4
 Requires:	rc-scripts >= 0.2.7
 Requires:	tar
 Requires:	virtual(module-tools)
-%if "%{pld_release}" == "ti"
-Requires:	lvm2-initrd
-Requires:	mdadm-initrd >= 1.12.0-1
-%else
 # otherwise LVM subsystem is not enabled in geninitrd
 Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
-%endif
 Suggests:	genromfs
 Suggests:	pciutils
 # suggest for blkid
@@ -94,11 +87,7 @@ bieżących informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
-%if "%{pld_release}" == "ti"
-%patch0 -p1
-%patch1 -p1
-%endif
-#%patch2 -p0
+#%patch0 -p0
 
 %build
 %{__make}
