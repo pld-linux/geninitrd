@@ -7,12 +7,12 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
 Version:	12639
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	bd47ea3ca6dbeea39af6bc5eb1d12e5a
-# svn diff http://svn.pld-linux.org/svn/geninitrd/trunk -r 12639:HEAD > geninitrd-svn.patch
+# svn diff http://svn.pld-linux.org/svn/geninitrd/trunk -r 12652:HEAD > geninitrd-svn.patch
 Patch0:		%{name}-svn.patch
 URL:		http://svn.pld-linux.org/trac/svn/wiki/packages/geninitrd
 BuildRequires:	xmlto >= 0:0.0.18-1
@@ -87,7 +87,7 @@ bieżących informacji zawartych w /etc/modules.conf.
 
 %prep
 %setup -q
-#%patch0 -p0
+%patch0 -p0
 
 %build
 %{__make}

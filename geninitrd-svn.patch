@@ -1,53 +1,15 @@
 Index: geninitrd
 ===================================================================
---- geninitrd	(wersja 12585)
-+++ geninitrd	(wersja 12612)
-@@ -332,6 +332,15 @@
- 	/lib/geninitrd/extract-ikconfig /boot/vmlinuz-$kernel
- }
- 
-+# @param    $module
-+basename_module() {
-+	local module=$1
-+
-+	module=${module##*/}
-+	module=${module%$modext*}
-+	echo $module
-+}
-+
- # Finds module dependencies
- #
- # @param	$module
-@@ -366,9 +375,23 @@
- 		warn "If $module isn't compiled in kernel then this initrd may not start your system."
- 	fi
- 
-+	local smodule
-+
- 	echo "$modprobe" | \
- 	while read insmod modpath options; do
--		[ "$insmod" = "insmod" ] && echo $modpath
-+		if [ "$insmod" = "insmod" ]; then
-+
-+			# XXX: find a away to autodetect
-+			smodule=$(basename_module $modpath)
-+			case "$smodule" in
-+				libcrc32c)
-+					find_depmod "-crc32c-intel"
-+					find_depmod "-crc32c"
+--- geninitrd	(wersja 12652)
++++ geninitrd	(wersja 12653)
+@@ -388,6 +388,10 @@
+ 					find_depmod "-crc32c-intel"
+ 					find_depmod "-crc32c"
+ 					;;
++				virtio_blk|virtio_scsi)
++					find_depmod "-virtio_pci"
++					find_depmod "-virtio_mmio"
 +					;;
-+			esac
-+
-+			echo $modpath
-+		fi
- 	done
- 	return 0
- }
-@@ -1445,6 +1468,7 @@
- else
- 	initrd_gen_md
- 	initrd_gen_lvm
-+	initrd_gen_blkid
- 	initrd_gen_luks
- 	initrd_gen_setrootdev
- fi
+ 			esac
+ 
+ 			echo $modpath
