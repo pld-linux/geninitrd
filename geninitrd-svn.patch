@@ -1,7 +1,7 @@
 Index: geninitrd
 ===================================================================
 --- geninitrd	(wersja 12652)
-+++ geninitrd	(wersja 12653)
++++ geninitrd	(wersja 12654)
 @@ -388,6 +388,10 @@
  					find_depmod "-crc32c-intel"
  					find_depmod "-crc32c"
@@ -13,3 +13,43 @@ Index: geninitrd
  			esac
  
  			echo $modpath
+Index: functions
+===================================================================
+--- functions	(wersja 12652)
++++ functions	(wersja 12654)
+@@ -212,6 +212,8 @@
+ 			module=$1
+ 			if (module == "xhci_hcd") {
+ 				xhci="xhci_hcd"
++			} else if (module == "ehci_pci") {
++				ehci_pci="ehci_pci"
+ 			} else if (module == "ehci_hcd") {
+ 				ehci="ehci_hcd"
+ 			} else if (module == "ohci_hcd") {
+@@ -225,7 +227,7 @@
+ 		}
+ 		END {
+ 			# xhci/ehci/ohci/uhci hack to preserve such order
+-			printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
++			printf "%s %s %s %s %s ", xhci, ehci_pci, ehci, ohci, uhci;
+ 			for (i in modules) { printf "%s ", modules[i]; };
+ 		}
+ 	'
+@@ -262,6 +264,8 @@
+ 				module = $2;
+ 				if (module == "xhci_hcd") {
+ 					xhci = "xhci_hcd"
++				} else if (module == "ehci_pci") {
++					ehci_pci="ehci_pci"
+ 				} else if (module == "ehci_hcd") {
+ 					ehci = "ehci_hcd"
+ 				} else if (module == "ohci_hcd") {
+@@ -277,7 +281,7 @@
+ 		}
+ 		END {
+ 		   # xhci/ehci/ohci/uhci hack to preserve such order
+-		   printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
++		   printf "%s %s %s %s %s ", xhci, ehci_pci, ehci, ohci, uhci;
+ 		   for (i in modules) { printf "%s ", modules[i]; }
+ 		}
+ 	'
