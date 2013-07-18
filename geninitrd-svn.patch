@@ -1,83 +1,14 @@
 Index: geninitrd
 ===================================================================
---- geninitrd	(wersja 12652)
-+++ geninitrd	(wersja 12655)
-@@ -388,6 +388,10 @@
+--- geninitrd	(wersja 12709)
++++ geninitrd	(wersja 12710)
+@@ -395,6 +395,9 @@
+ 			# XXX: find a away to autodetect
+ 			smodule=$(basename_module $modpath)
+ 			case "$smodule" in
++				crc-t10dif)
++					find_depmod "-crct10dif"
++					;;
+ 				libcrc32c)
  					find_depmod "-crc32c-intel"
  					find_depmod "-crc32c"
- 					;;
-+				virtio_blk|virtio_scsi)
-+					find_depmod "-virtio_pci"
-+					find_depmod "-virtio_mmio"
-+					;;
- 			esac
- 
- 			echo $modpath
-Index: functions
-===================================================================
---- functions	(wersja 12652)
-+++ functions	(wersja 12655)
-@@ -207,13 +207,17 @@
- 	fi
- 
- 	echo $modaliases | xargs modprobe --set-version $kernel -aRn | awk '
--		BEGIN { skip_modules[notexisting_module]=""; modules[1]=""; xhci=""; ehci=""; ohci=""; uhci="" }
-+		BEGIN { skip_modules[notexisting_module]=""; modules[1]=""; xhci=""; ehci_pci=""; ehci_hcd=""; ehci_platform=""; ohci=""; uhci="" }
- 		{
- 			module=$1
- 			if (module == "xhci_hcd") {
- 				xhci="xhci_hcd"
- 			} else if (module == "ehci_hcd") {
--				ehci="ehci_hcd"
-+				ehci_hcd="ehci_hcd"
-+			} else if (module == "ehci_pci") {
-+				ehci_pci="ehci_pci"
-+			} else if (module == "ehci_platform") {
-+				ehci_platform="ehci_platform"
- 			} else if (module == "ohci_hcd") {
- 				ohci="ohci_hcd"
- 			} else if (module == "uhci_hcd") {
-@@ -224,8 +228,8 @@
- 			skip_modules[module]=1;
- 		}
- 		END {
--			# xhci/ehci/ohci/uhci hack to preserve such order
--			printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
-+			# ehci/ohci/uhci/xhci hack to preserve such order
-+			printf "%s %s %s %s %s %s ", ehci_hcd, ehci_pci, ehci_platform, ohci, uhci, xhci;
- 			for (i in modules) { printf "%s ", modules[i]; };
- 		}
- 	'
-@@ -255,7 +259,7 @@
- 	fi
- 
- 	LC_ALL=C lspci -p "$pcimap" -kvmmn | awk -vreq_class="${req_class}" '
--		BEGIN      { skip_modules[notexisting_module]=""; modules[1]=""; xhci=""; ehci=""; ohci=""; uhci="" }
-+		BEGIN      { skip_modules[notexisting_module]=""; modules[1]=""; xhci=""; ehci_pci=""; ehci_hcd=""; ehci_platform=""; ohci=""; uhci="" }
- 		/^Slot:/   { found=0 }
- 		/^Class:/  { if (req_class == $2) { found = 1 } }
- 		/^Driver:/ { if (found) {
-@@ -263,7 +267,11 @@
- 				if (module == "xhci_hcd") {
- 					xhci = "xhci_hcd"
- 				} else if (module == "ehci_hcd") {
--					ehci = "ehci_hcd"
-+					ehci_hcd = "ehci_hcd"
-+				} else if (module == "ehci_pci") {
-+					ehci_pci="ehci_pci"
-+				} else if (module == "ehci_platform") {
-+					ehci_platform="ehci_platform"
- 				} else if (module == "ohci_hcd") {
- 					ohci = "ohci_hcd"
- 				} else if (module == "uhci_hcd") {
-@@ -276,8 +284,8 @@
- 		   found=0
- 		}
- 		END {
--		   # xhci/ehci/ohci/uhci hack to preserve such order
--		   printf "%s %s %s %s ", xhci, ehci, ohci, uhci;
-+		   # ehci/ohci/uhci/xhci hack to preserve such order
-+		   printf "%s %s %s %s %s %s ", ehci_hcd, ehci_pci, ehci_platform, ohci, uhci, xhci;
- 		   for (i in modules) { printf "%s ", modules[i]; }
- 		}
- 	'
