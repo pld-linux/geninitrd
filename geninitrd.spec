@@ -6,14 +6,12 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	12695
-Release:	3
+Version:	12719
+Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	c6235c690934c87e5361bcf4a23b25db
-# svn diff http://svn.pld-linux.org/svn/geninitrd/trunk -r 12709:HEAD > geninitrd-svn.patch
-Patch0:		%{name}-svn.patch
+# Source0-md5:	c8620d7e3988a073d0852f78cb560f06
 URL:		http://svn.pld-linux.org/trac/svn/wiki/packages/geninitrd
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
@@ -30,11 +28,11 @@ Requires:	pci-database >= 0.4
 Requires:	rc-scripts >= 0.2.7
 Requires:	tar
 Requires:	virtual(module-tools)
+Suggests:	genromfs
 # otherwise LVM subsystem is not enabled in geninitrd
 Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
-Suggests:	genromfs
 Suggests:	pciutils
 # suggest for blkid
 %if "%{pld_release}" != "ac"
@@ -86,8 +84,8 @@ startu z initrd. Skrypt geninitrd generuje obraz ramdysku na podstawie
 bieżących informacji zawartych w /etc/modules.conf.
 
 %prep
-%setup -q
-%patch0 -p0
+%setup -qc
+mv %{name}-%{version}*/* .
 
 %build
 %{__make}
