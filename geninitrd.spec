@@ -29,17 +29,14 @@ Requires:	rc-scripts >= 0.2.7
 Requires:	tar
 Requires:	virtual(module-tools)
 Suggests:	genromfs
+Suggests:	pciutils
+Obsoletes:	mkinitrd
+# suggest for blkid
+%if "%{pld_release}" == "ac"
 # otherwise LVM subsystem is not enabled in geninitrd
 Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
-Suggests:	pciutils
-# suggest for blkid
-%if "%{pld_release}" != "ac"
-Suggests:	util-linux-initrd
-%endif
-Obsoletes:	mkinitrd
-%if "%{pld_release}" == "ac"
 Conflicts:	grubby < 5.0.4-3.1
 %else
 Conflicts:	grubby < 6.0.24-3
