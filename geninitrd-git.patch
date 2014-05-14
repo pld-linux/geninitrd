@@ -1,0 +1,19 @@
+commit c6e700c36a25dd8c8438bbac6d53f5d558100d46
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Wed May 14 19:05:42 2014 +0200
+
+    Install 95-dm-notify.rules. Fixes problems with using dmcrypt and errors (in debug mode) like 'Udev cookie 0xd4dc311 (semid 229380) waiting for zero'
+
+diff --git a/mod-udev.sh b/mod-udev.sh
+index dbb7c53..6e3008d 100644
+--- a/mod-udev.sh
++++ b/mod-udev.sh
+@@ -47,7 +47,7 @@ initrd_gen_udev() {
+ 	inst /etc/udev/udev.conf /etc/udev/udev.conf
+ 	# standard udev rules
+ 	inst_rules 50-udev-default.rules 60-persistent-storage.rules 61-persistent-storage-edd.rules 80-drivers.rules 95-udev-late.rules \
+-		60-pcmcia.rules 50-firmware.rules 10-dm.rules 11-dm-lvm.rules 13-dm-disk.rules
++		60-pcmcia.rules 50-firmware.rules 10-dm.rules 11-dm-lvm.rules 13-dm-disk.rules 95-dm-notify.rules
+ 	# initrd dedicated rules
+ 	inst_rules 01-ignore.rules 59-persistent-storage.rules 61-persistent-storage.rules 11-dm.rules
+ 
