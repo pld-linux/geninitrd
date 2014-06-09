@@ -17,3 +17,47 @@ index dbb7c53..6e3008d 100644
  	# initrd dedicated rules
  	inst_rules 01-ignore.rules 59-persistent-storage.rules 61-persistent-storage.rules 11-dm.rules
  
+commit ff9aded51db8fa19316dde7864ec193f5fdf22b6
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Mon Jun 9 11:19:10 2014 +0200
+
+    Load configured font and do it early.
+
+diff --git a/geninitrd b/geninitrd
+index 2478063..f31f00d 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -202,6 +202,25 @@ mount_dev() {
+ 	EOF
+ }
+ 
++# load font
++load_font() {
++	local font
++	[ ! -r /etc/sysconfig/console ] && return
++	. /etc/sysconfig/console
++	if [ -n "$CONSOLEFONT" ]; then
++		font=$(ls -1 /lib/kbd/consolefonts/${CONSOLEFONT}*.gz 2> /dev/null)
++		if [ -n "$font" ]; then
++			verbose "Loading font $font"
++			busybox_applet loadfont
++			inst_d "/lib/kbd/consolefonts"
++			cp -a "$font" "$DESTDIR/lib/kbd/consolefonts/"
++			gunzip ${DESTDIR}/lib/kbd/consolefonts/${CONSOLEFONT}*.gz
++			font=${font%.gz}
++			echo "loadfont < $font" | add_linuxrc
++		fi
++	fi
++}
++
+ # generate code to mount /proc on initrd
+ # can be called multiple times
+ mount_proc() {
+@@ -1478,6 +1497,7 @@ add_linuxrc <<EOF
+ # on $(LC_ALL=C date)
+ 
+ EOF
++load_font
+ mount_proc
+ 
+ kmsg "geninitrd/$VERSION starting"
