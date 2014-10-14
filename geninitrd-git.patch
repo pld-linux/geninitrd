@@ -61,3 +61,41 @@ index 2478063..f31f00d 100755
  mount_proc
  
  kmsg "geninitrd/$VERSION starting"
+diff --git a/geninitrd b/geninitrd
+index f31f00d..74d8b70 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -784,9 +784,22 @@ modules_install() {
+ 		MODULEDIR=${mod%/*}
+ 		inst_d "/lib/modules/$kernel/$MODULEDIR"
+ 		cp -a "/lib/modules/$kernel/$mod" "$DESTDIR/lib/modules/$kernel/$mod"
+-		gunzip "$DESTDIR/lib/modules/$kernel/$mod" 2> /dev/null
++		case $mod in
++			*.gz)
++				gunzip "$DESTDIR/lib/modules/$kernel/$mod"
++				mod=${mod%.gz}
++				;;
++			*.xz)
++				xz -d "$DESTDIR/lib/modules/$kernel/$mod"
++				mod=${mod%.xz}
++				;;
++			*.bz2)
++				bzip2 -d "$DESTDIR/lib/modules/$kernel/$mod"
++				mod=${mod%.bz2}
++				;;
++		esac
+ 		if [ "$STRIP" ] && [ -x "$STRIP" ]; then
+-			$STRIP -g --remove-section=.comment "$DESTDIR/lib/modules/$kernel/${mod%.gz}"
++			$STRIP -g --remove-section=.comment "$DESTDIR/lib/modules/$kernel/${mod}"
+ 		fi
+ 	done
+ }
+@@ -797,6 +810,8 @@ modules_add_linuxrc() {
+ 	for mod in "$@"; do
+ 		# module path without optional compression
+ 		modpath=${mod%.gz}
++		modpath=${modpath%.xz}
++		modpath=${modpath%.bz2}
+ 
+ 		# name of the module
+ 		local module=${modpath##*/}; module=${module%$modext}
