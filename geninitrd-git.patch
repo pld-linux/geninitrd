@@ -1,101 +1,45 @@
-commit c6e700c36a25dd8c8438bbac6d53f5d558100d46
-Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
-Date:   Wed May 14 19:05:42 2014 +0200
-
-    Install 95-dm-notify.rules. Fixes problems with using dmcrypt and errors (in debug mode) like 'Udev cookie 0xd4dc311 (semid 229380) waiting for zero'
-
-diff --git a/mod-udev.sh b/mod-udev.sh
-index dbb7c53..6e3008d 100644
---- a/mod-udev.sh
-+++ b/mod-udev.sh
-@@ -47,7 +47,7 @@ initrd_gen_udev() {
- 	inst /etc/udev/udev.conf /etc/udev/udev.conf
- 	# standard udev rules
- 	inst_rules 50-udev-default.rules 60-persistent-storage.rules 61-persistent-storage-edd.rules 80-drivers.rules 95-udev-late.rules \
--		60-pcmcia.rules 50-firmware.rules 10-dm.rules 11-dm-lvm.rules 13-dm-disk.rules
-+		60-pcmcia.rules 50-firmware.rules 10-dm.rules 11-dm-lvm.rules 13-dm-disk.rules 95-dm-notify.rules
- 	# initrd dedicated rules
- 	inst_rules 01-ignore.rules 59-persistent-storage.rules 61-persistent-storage.rules 11-dm.rules
+diff --git a/mod-luks.sh b/mod-luks.sh
+index 8cd9959..43bdcaa 100644
+--- a/mod-luks.sh
++++ b/mod-luks.sh
+@@ -134,15 +134,27 @@ luks_crypttab() {
+ 			if key_is_random "$key"; then
+ 				die "$dst: LUKS requires non-random key, skipping"
+ 			fi
+-			if [ -n "$opt" ]; then
+-				warn "$dst: options are invalid for LUKS partitions, ignoring them"
+-			fi
+ 			if [ "$key" ]; then
+ 				keyfile=/etc/.$dst.key
+ 				inst $key $keyfile
+ 			fi
  
-commit ff9aded51db8fa19316dde7864ec193f5fdf22b6
-Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
-Date:   Mon Jun 9 11:19:10 2014 +0200
-
-    Load configured font and do it early.
-
-diff --git a/geninitrd b/geninitrd
-index 2478063..f31f00d 100755
---- a/geninitrd
-+++ b/geninitrd
-@@ -202,6 +202,25 @@ mount_dev() {
- 	EOF
- }
- 
-+# load font
-+load_font() {
-+	local font
-+	[ ! -r /etc/sysconfig/console ] && return
-+	. /etc/sysconfig/console
-+	if [ -n "$CONSOLEFONT" ]; then
-+		font=$(ls -1 /lib/kbd/consolefonts/${CONSOLEFONT}*.gz 2> /dev/null)
-+		if [ -n "$font" ]; then
-+			verbose "Loading font $font"
-+			busybox_applet loadfont
-+			inst_d "/lib/kbd/consolefonts"
-+			cp -a "$font" "$DESTDIR/lib/kbd/consolefonts/"
-+			gunzip ${DESTDIR}/lib/kbd/consolefonts/${CONSOLEFONT}*.gz
-+			font=${font%.gz}
-+			echo "loadfont < $font" | add_linuxrc
-+		fi
-+	fi
-+}
+-			verbose "+ cryptsetup ${keyfile:+-d $keyfile} luksOpen '$src' '$dst'"
++			crypttab_opt=""
++			old_IFS="$IFS"
++			IFS=","
++			for option in $opt; do
++				case "$option" in
++					discard|allow-discards)
++						crypttab_opt="$crypttab_opt --allow-discards"
++						;;
++					*)
++						warn "$dst: option \'$opt\' is invalid for LUKS partitions, ignored"
++						;;
++				esac
++			done
++			IFS="$old_IFS"
 +
- # generate code to mount /proc on initrd
- # can be called multiple times
- mount_proc() {
-@@ -1478,6 +1497,7 @@ add_linuxrc <<EOF
- # on $(LC_ALL=C date)
++			verbose "+ cryptsetup ${keyfile:+-d $keyfile} open --type luks $crypttab_opt '$src' '$dst'"
+ 			add_linuxrc <<-EOF
+ 			debugshell
  
- EOF
-+load_font
- mount_proc
+@@ -169,7 +181,7 @@ luks_crypttab() {
+ 				crypt_status=\$(cryptsetup \$cryptsetup_opt status '$dst')
+ 				if [ "\${crypt_status%%is inactive.}" != "\$crypt_status" ]; then
+ 					# is inactive
+-					cryptsetup \$cryptsetup_opt ${keyfile:+-d $keyfile} luksOpen "\$luksdev" '$dst' <&1
++					cryptsetup \$cryptsetup_opt ${keyfile:+-d $keyfile} open --type luks $crypttab_opt "\$luksdev" '$dst' <&1
+ 				fi
+ 			fi
  
- kmsg "geninitrd/$VERSION starting"
-diff --git a/geninitrd b/geninitrd
-index f31f00d..74d8b70 100755
---- a/geninitrd
-+++ b/geninitrd
-@@ -784,9 +784,22 @@ modules_install() {
- 		MODULEDIR=${mod%/*}
- 		inst_d "/lib/modules/$kernel/$MODULEDIR"
- 		cp -a "/lib/modules/$kernel/$mod" "$DESTDIR/lib/modules/$kernel/$mod"
--		gunzip "$DESTDIR/lib/modules/$kernel/$mod" 2> /dev/null
-+		case $mod in
-+			*.gz)
-+				gunzip "$DESTDIR/lib/modules/$kernel/$mod"
-+				mod=${mod%.gz}
-+				;;
-+			*.xz)
-+				xz -d "$DESTDIR/lib/modules/$kernel/$mod"
-+				mod=${mod%.xz}
-+				;;
-+			*.bz2)
-+				bzip2 -d "$DESTDIR/lib/modules/$kernel/$mod"
-+				mod=${mod%.bz2}
-+				;;
-+		esac
- 		if [ "$STRIP" ] && [ -x "$STRIP" ]; then
--			$STRIP -g --remove-section=.comment "$DESTDIR/lib/modules/$kernel/${mod%.gz}"
-+			$STRIP -g --remove-section=.comment "$DESTDIR/lib/modules/$kernel/${mod}"
- 		fi
- 	done
- }
-@@ -797,6 +810,8 @@ modules_add_linuxrc() {
- 	for mod in "$@"; do
- 		# module path without optional compression
- 		modpath=${mod%.gz}
-+		modpath=${modpath%.xz}
-+		modpath=${modpath%.bz2}
- 
- 		# name of the module
- 		local module=${modpath##*/}; module=${module%$modext}
