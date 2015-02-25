@@ -29,6 +29,7 @@ Requires:	pci-database >= 0.4
 Requires:	rc-scripts >= 0.2.7
 Requires:	tar
 Requires:	virtual(module-tools)
+Requires:	xz
 Suggests:	genromfs
 Suggests:	pciutils
 Obsoletes:	mkinitrd
