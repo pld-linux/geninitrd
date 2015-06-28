@@ -13,9 +13,18 @@ index a3f6b19..f4d9acb 100644
 +	done
 +}
 diff --git a/geninitrd b/geninitrd
-index 2c435f8..6ad6820 100755
+index b8ee2a3..7b962b5 100755
 --- a/geninitrd
 +++ b/geninitrd
+@@ -505,7 +505,7 @@ inst() {
+ 		mkdir -p $parentDir
+ 	fi
+ 	verbose "+ cp $* DESTDIR$dest"
+-	cp -HR "$@" "$DESTDIR$dest"
++	cp -HRp "$@" "$DESTDIR$dest"
+ }
+ 
+ inst_d() {
 @@ -553,17 +553,20 @@ inst_exec() {
  
  	# hack for uclibc linked binaries requiring this fixed path
@@ -47,7 +56,35 @@ index 2c435f8..6ad6820 100755
  }
  
  # output modules.conf / modprobe.conf
-@@ -1363,19 +1366,10 @@ for dir in libx32 lib64 lib; do
+@@ -999,6 +1002,12 @@ initrd_gen_initramfs_switchroot() {
+ 			mknod -m 660 $device b $maj $min
+ 		fi
+ 
++		# XXX hack, fallback to rootdev from geninitrd time
++		if [ ! -e "$device" ]; then
++			device="$rootdev"
++			echo "DEVICE set to $device based on fstab entry from initrd gen time"
++		fi
++
+ 		# XXX hack, if no device, try to parse it from /proc/partitions using /proc/sys/kernel/real-root-dev
+ 		if [ ! -e "$device" ]; then
+ 			rrd=$(cat /proc/sys/kernel/real-root-dev)
+@@ -1052,6 +1061,14 @@ initrd_gen_initramfs_switchroot() {
+ 			[ "$DEBUGINITRD" ] || usleep 10000000
+ 		fi
+ 
++		# systemd[1]: /usr appears to be on its own filesytem and is not
++		# already mounted. This is not a supported setup. Some things will
++		# probably break (sometimes even silently) in mysterious ways. Consult
++		# http://freedesktop.org/wiki/Software/systemd/separate-usr-is-broken
++		# for more information.
++		echo trying to mount /usr
++		chroot /newroot mount -n /usr
++
+ 		exec switch_root /newroot $init ${1:+"$@"}
+ 
+ 		# FIXME: this code is never executed, as "exec" does not return!
+@@ -1355,19 +1372,10 @@ for dir in libx32 lib64 lib; do
  	fi
  done
  
@@ -122,3 +159,24 @@ index 48efd57..c984e77 100644
  
  	add_linuxrc <<-'EOF'
  	resume=no
+diff --git a/mod-udev.sh b/mod-udev.sh
+index 147b070..30114cd 100644
+--- a/mod-udev.sh
++++ b/mod-udev.sh
+@@ -58,6 +58,16 @@ initrd_gen_udev() {
+ 		fi
+ 	done
+ 
++	# basic group file
++	local _lib
++	inst /etc/nsswitch.conf /etc/nsswitch.conf
++	for _lib in $(get_libdir LIBDIR); do
++		if (ls /$_lib/libnss_files*.so* > /dev/null 2>&1); then
++			inst_exec /$_lib/libnss_files*.so* /$_lib/
++		fi
++	done
++	awk -F: ' { if ($3 < 1000) { print $1":"$2":"$3":" } } ' /etc/group > $DESTDIR/etc/group
++
+ 	# blkid installed by mod-blkid
+ 	if ! is_yes "$USE_BLKID"; then
+ 		warn "BLKID support missing"
