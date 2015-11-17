@@ -12,7 +12,7 @@ License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
 # Source0-md5:	3fb153489c3c245e5c1ee4bbc333acb4
-Patch0:		%{name}-git.patch
+#Patch0:		%{name}-git.patch
 URL:		http://git.pld-linux.org/?p=projects/geninitrd.git
 BuildRequires:	xmlto >= 0:0.0.18-1
 Requires:	/usr/bin/ldd
