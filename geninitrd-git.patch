@@ -1,0 +1,36 @@
+diff --git a/geninitrd b/geninitrd
+index 7b962b5..a4de196 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -1103,8 +1103,7 @@ sym_exists() {
+ # find best compressor (or forced one) for initrd
+ find_compressor() {
+ 	local mode="$1"
+-	# fastest initrd decompression speed is first
+-	local compressors='lzo gzip xz lzma bzip2'
++	local compressors='xz lzma bzip2 gzip lzo'
+ 
+ 	# a specified one, take it
+ 	if ! is_yes "$mode"; then
+diff --git a/mod-md.sh b/mod-md.sh
+index a0cd7aa..d9093d4 100644
+--- a/mod-md.sh
++++ b/mod-md.sh
+@@ -139,13 +139,15 @@ initrd_gen_md() {
+ 
+ 	inst_exec $mdassemble /bin/mdassemble
+ 
++	echo "DEVICE partitions containers" >> "$DESTDIR/etc/mdadm.conf"
++
+ 	# LVM on RAID case
+ 	local dev_list_extra ex_dev
+ 	dev_list_extra=$(awk '/^DEVICE / { for (i=2; i<=NF; i++) { printf "%s ", $i; }; } ' /etc/mdadm.conf | xargs)
+ 	new_dev_list_extra=""
+ 	for ex_dev in $dev_list_extra; do
+-		if [ "$ex_dev" = "partitions" ]; then
+-			echo "DEVICE partitions" >> "$DESTDIR/etc/mdadm.conf"
++		if [ "$ex_dev" = "partitions" -o "$ex_dev" = "containers" ]; then
++			echo "DEVICE $ex_dev" >> "$DESTDIR/etc/mdadm.conf"
+ 			# FIXME: find and copy partition devices from /proc/partitions
+ 			#        - best if done at runtime, now initrd gen time
+ 			continue
