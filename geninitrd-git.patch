@@ -34,3 +34,25 @@ index a0cd7aa..d9093d4 100644
  			# FIXME: find and copy partition devices from /proc/partitions
  			#        - best if done at runtime, now initrd gen time
  			continue
+commit 11202855dbaee5bc32209913df1ae8738c210c39
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Sat May 14 00:36:02 2016 +0200
+
+    Make rootdev fallback work.
+
+diff --git a/geninitrd b/geninitrd
+index 92a519d..771245e 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -1004,7 +1004,11 @@ initrd_gen_initramfs_switchroot() {
+ 
+ 		# XXX hack, fallback to rootdev from geninitrd time
+ 		if [ ! -e "$device" ]; then
++	EOF
++	add_linuxrc <<-EOF
+ 			device="$rootdev"
++	EOF
++	add_linuxrc <<-'EOF'
+ 			echo "DEVICE set to $device based on fstab entry from initrd gen time"
+ 		fi
+ 
