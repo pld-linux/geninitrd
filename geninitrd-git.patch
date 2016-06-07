@@ -56,3 +56,22 @@ index 92a519d..771245e 100755
  			echo "DEVICE set to $device based on fstab entry from initrd gen time"
  		fi
  
+commit 583a7f5f8783fb1f92b75ca9f651d675df016b73
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Jun 7 08:30:46 2016 +0200
+
+    Mount /run with 0755.
+
+diff --git a/geninitrd b/geninitrd
+index 771245e..62e47ee 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -273,7 +273,7 @@ mount_run() {
+ 	fi
+ 
+ 	run_mounted=yes
+-	echo "mount -t tmpfs run /run" | add_linuxrc
++	echo "mount -t tmpfs run /run -o mode=0755" | add_linuxrc
+ }
+ 
+ # unmount all mountpoints mounted by geninitrd
