@@ -1,0 +1,14 @@
+--- geninitrd-12757/functions.orig	2015-11-09 13:02:48.000000000 +0100
++++ geninitrd-12757/functions	2016-06-21 20:39:25.851674448 +0200
+@@ -303,9 +303,9 @@
+ 	'
+ }
+ 
+-# get possible paths for specifed patter containing LIBDIR
++# get possible paths for specifed pattern containing LIBDIR
+ get_libdir() {
+ 	for dir in lib lib64 libx32; do
+-		echo -n "${1/LIBDIR/$dir} "
++		echo -n "$1 " | sed -e "s,LIBDIR,${dir},g"
+ 	done
+ }

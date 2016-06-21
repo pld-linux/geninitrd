@@ -1,0 +1,16 @@
+--- geninitrd-12757/geninitrd.orig	2016-06-21 17:52:10.293075494 +0200
++++ geninitrd-12757/geninitrd	2016-06-21 20:37:02.375785058 +0200
+@@ -293,8 +293,12 @@
+ 		run_mounted=no
+ 	fi
+ 	if is_yes "$dev_mounted"; then
++		if ! is_no "$START_UDEV"; then
++			add_linuxrc <<-EOF
++			mount --bind /dev /newroot/dev
++			EOF
++		fi
+ 		add_linuxrc <<-EOF
+-		mount --bind /dev /newroot/dev
+ 		umount /dev
+ 		EOF
+ 		dev_mounted=no
