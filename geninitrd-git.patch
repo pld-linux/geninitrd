@@ -75,3 +75,23 @@ index 771245e..62e47ee 100755
  }
  
  # unmount all mountpoints mounted by geninitrd
+commit b5a01dda8ca06f88b1210f806f3ac6da7c0019f0
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Fri May 4 15:50:18 2018 +0200
+
+    ext4 can use crc32 but has it in softdep only
+
+diff --git a/geninitrd b/geninitrd
+index 0a18298..c75c22b 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -435,6 +435,9 @@ find_depmod() {
+ 					warn "mounting multidevice btrfs volume requires rootfsflags=device=/dev/...,device=/dev/... kernel option"
+ 					find_depmod "-libcrc32c"
+ 					;;
++				ext4)
++					find_depmod "-libcrc32c"
++					;;
+ 				crc-t10dif)
+ 					find_depmod "-crct10dif-pclmul"
+ 					find_depmod "-crct10dif"
