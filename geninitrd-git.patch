@@ -95,3 +95,37 @@ index 0a18298..c75c22b 100755
  				crc-t10dif)
  					find_depmod "-crct10dif-pclmul"
  					find_depmod "-crct10dif"
+commit 256e0bedb591a982ce87fb2ca1b38e1353d5b33a
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Fri Aug 10 10:40:59 2018 +0200
+
+    ramdisk_size warning makes no sense for initramfs.
+
+diff --git a/geninitrd b/geninitrd
+index c75c22b..025674d 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -1759,14 +1759,16 @@ case "$INITRDFS" in
+ 	die "Filesystem $INITRDFS not supported by $PROGRAM"
+ esac
+ 
+-CONFIG_BLK_DEV_RAM_SIZE=$(ikconfig | awk -F= '/^CONFIG_BLK_DEV_RAM_SIZE/{print $2}')
+-if [ -z "$CONFIG_BLK_DEV_RAM_SIZE" ]; then
+-	CONFIG_BLK_DEV_RAM_SIZE=4096
+-	warn "No CONFIG_BLK_DEV_RAM_SIZE detected, fallback to $CONFIG_BLK_DEV_RAM_SIZE"
+-fi
++if [ "$INITRDFS" != "initramfs" ]; then
++	CONFIG_BLK_DEV_RAM_SIZE=$(ikconfig | awk -F= '/^CONFIG_BLK_DEV_RAM_SIZE/{print $2}')
++	if [ -z "$CONFIG_BLK_DEV_RAM_SIZE" ]; then
++		CONFIG_BLK_DEV_RAM_SIZE=4096
++		warn "No CONFIG_BLK_DEV_RAM_SIZE detected, fallback to $CONFIG_BLK_DEV_RAM_SIZE"
++	fi
+ 
+-if [ "$IMAGESIZE" -gt $CONFIG_BLK_DEV_RAM_SIZE ]; then
+-	warn "Your image size is larger than $CONFIG_BLK_DEV_RAM_SIZE, Be sure to boot kernel with ramdisk_size=$IMAGESIZE!"
++	if [ "$IMAGESIZE" -gt $CONFIG_BLK_DEV_RAM_SIZE ]; then
++		warn "Your image size is larger than $CONFIG_BLK_DEV_RAM_SIZE, Be sure to boot kernel with ramdisk_size=$IMAGESIZE!"
++	fi
+ fi
+ 
+ if ! is_no "$COMPRESS"; then
