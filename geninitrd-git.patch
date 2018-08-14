@@ -1,3 +1,9 @@
+commit a16a1beafe3929b47bc28208c375520771c84b08
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Wed Jan 20 21:57:53 2016 +0100
+
+    Reorder compressors, so best (smallest image) is used first. Using best compression to avoid a need to play with kernel options to load bigger ramdisks.
+
 diff --git a/geninitrd b/geninitrd
 index 7b962b5..a4de196 100755
 --- a/geninitrd
@@ -12,11 +18,18 @@ index 7b962b5..a4de196 100755
  
  	# a specified one, take it
  	if ! is_yes "$mode"; then
+
+commit a52ae08eef1036b833da1cbecf27f04782a1d473
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Sun Jan 31 17:00:15 2016 +0100
+
+    Always include partitions and containers when starting mdadm array.
+
 diff --git a/mod-md.sh b/mod-md.sh
-index a0cd7aa..d9093d4 100644
+index a0cd7aa..1c5c60c 100644
 --- a/mod-md.sh
 +++ b/mod-md.sh
-@@ -139,13 +139,15 @@ initrd_gen_md() {
+@@ -139,6 +139,8 @@ initrd_gen_md() {
  
  	inst_exec $mdassemble /bin/mdassemble
  
@@ -24,6 +37,19 @@ index a0cd7aa..d9093d4 100644
 +
  	# LVM on RAID case
  	local dev_list_extra ex_dev
+ 	dev_list_extra=$(awk '/^DEVICE / { for (i=2; i<=NF; i++) { printf "%s ", $i; }; } ' /etc/mdadm.conf | xargs)
+
+commit 44c13508fd5b62e82335bea903690609a35de913
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Sun Jan 31 17:03:18 2016 +0100
+
+    Allow containers in ex devices.
+
+diff --git a/mod-md.sh b/mod-md.sh
+index 1c5c60c..d9093d4 100644
+--- a/mod-md.sh
++++ b/mod-md.sh
+@@ -146,8 +146,8 @@ initrd_gen_md() {
  	dev_list_extra=$(awk '/^DEVICE / { for (i=2; i<=NF; i++) { printf "%s ", $i; }; } ' /etc/mdadm.conf | xargs)
  	new_dev_list_extra=""
  	for ex_dev in $dev_list_extra; do
@@ -34,6 +60,130 @@ index a0cd7aa..d9093d4 100644
  			# FIXME: find and copy partition devices from /proc/partitions
  			#        - best if done at runtime, now initrd gen time
  			continue
+
+commit fee61d3f4dd96bfdca441a8ab524d9928309559e
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Fri Feb 26 18:15:14 2016 +0100
+
+    Check if kernel supports specified INITRDFS (tested with initramfs and romfs only though)
+
+diff --git a/geninitrd b/geninitrd
+index a4de196..92a519d 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -1097,7 +1097,7 @@ sym_exists() {
+ 		return 1
+ 	fi
+ 
+-	awk -vc=1 -vsymbol="$symbol" '$2 == "T" && $3 == symbol {c = 0} END {exit c}' $mapfile
++	awk -vc=1 -vsymbol="$symbol" '($2 == "T" || $2 == "t") && $3 == symbol {c = 0} END {exit c}' $mapfile
+ }
+ 
+ # find best compressor (or forced one) for initrd
+@@ -1400,24 +1400,46 @@ if [ -z "$INITRDFS" ]; then
+ 	fi
+ fi
+ 
+-case "$INITRDFS" in
+-  ext2)
+-	[ -x /sbin/mke2fs ] || die "/sbin/mke2fs is missing"
+-	;;
+-  rom|romfs)
+-	[ -x /sbin/genromfs ] || die "/sbin/genromfs is missing"
+-	;;
+-  cram|cramfs)
+-	[ -x /sbin/mkcramfs ] || die "/sbin/mkcramfs is missing"
+-	;;
+-  initramfs)
+-	[ -x /bin/cpio ] || die "/bin/cpio is missing"
+-	[ -x /usr/bin/find ] || die "/usr/bin/find is missing"
+-	;;
+-  *)
+-	die "Filesystem $INITRDFS on initrd is not supported"
+-	;;
+-esac
++check_initrd_fs() {
++	local s sfound sym p prog map=/boot/System.map-$kernel
++	case "$INITRDFS" in
++		ext2)
++			# TODO: symbols to check in case of ext2 used via ext3/4 subsystem
++			sym=init_ext2_fs
++			prog=/sbin/mke2fs
++			;;
++		rom|romfs)
++			sym=init_romfs_fs
++			prog=/sbin/genromfs
++			;;
++		cram|cramfs)
++			sym=init_cramfs_fs
++			prog=/sbin/mkcramfs
++			;;
++		initramfs)
++			sym=__initramfs_start
++			prog="/bin/cpio /usr/bin/find"
++			;;
++		*)
++			die "Filesystem $INITRDFS on initrd is not supported by geninitrd"
++			;;
++	esac
++
++	# only one is needed (for cases like ext2 via ext2 or via ext3 or via ext4 subsysytem)
++	sfound=0
++	for s in $sym; do
++		sym_exists $map $s && sfound=1
++		break
++	done
++	if [ "$sfound" -eq "0" ]; then
++		die "Filesystem $INITRDFS on initrd is not supported by kernel"
++	fi
++
++	for p in $prog; do
++		[ ! -x "$p" ] && die "$prog is missing"
++	done
++}
++check_initrd_fs
+ 
+ if [ -L "$target" ]; then
+ 	target=$(readlink -f "$target")
+
+commit 985c7aef65f1fd4a704ded7218fb2df010153080
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Sat May 7 12:34:33 2016 +0200
+
+    Use uevent feature of new busybox instead of pure and racy mdev via hotplug
+
+diff --git a/mod-udev.sh b/mod-udev.sh
+index 30114cd..422ef3e 100644
+--- a/mod-udev.sh
++++ b/mod-udev.sh
+@@ -115,8 +115,9 @@ initrd_gen_stop_udevd() {
+ initrd_gen_mdev() {
+ 	debug "Setting up mdev..."
+ 
+-	busybox_applet mdev
++	busybox_applet mdev uevent
+ 	ln -s busybox $DESTDIR/bin/mdev
++	ln -s busybox $DESTDIR/bin/uevent
+ 
+ 	cat > $DESTDIR/etc/mdev.conf	<<-'EOF'
+ # Provide user, group, and mode information for devices.  If a regex matches
+@@ -157,13 +158,13 @@ hd[a-z]*	0:6 660
+ 	add_linuxrc	<<-'EOF'
+ 		# \n needed in mdev.seq
+ 		echo > /dev/mdev.seq
+-		echo /bin/mdev > /proc/sys/kernel/hotplug
++		uevent mdev &
+ 		mdev -s
+ 	EOF
+ }
+ 
+ initrd_gen_stop_mdev() {
+ 	add_linuxrc     <<-'EOF'
+-		killall mdev > /dev/null 2>&1
++		killall uevent > /dev/null 2>&1
+ 	EOF
+ }
+
 commit 11202855dbaee5bc32209913df1ae8738c210c39
 Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
 Date:   Sat May 14 00:36:02 2016 +0200
@@ -56,6 +206,7 @@ index 92a519d..771245e 100755
  			echo "DEVICE set to $device based on fstab entry from initrd gen time"
  		fi
  
+
 commit 583a7f5f8783fb1f92b75ca9f651d675df016b73
 Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
 Date:   Tue Jun 7 08:30:46 2016 +0200
@@ -75,6 +226,538 @@ index 771245e..62e47ee 100755
  }
  
  # unmount all mountpoints mounted by geninitrd
+
+commit 8c1bff4fcc5f9c5c60aea7ab168a96c7d6e93470
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Jun 7 08:36:48 2016 +0200
+
+    cryptsetup: Use 120s timeout when asking for password.
+
+diff --git a/mod-luks.sh b/mod-luks.sh
+index 09e31d3..8e9bc46 100644
+--- a/mod-luks.sh
++++ b/mod-luks.sh
+@@ -157,7 +157,7 @@ luks_crypttab() {
+ 			done
+ 			IFS="$old_IFS"
+ 
+-			verbose "+ cryptsetup ${keyfile:+-d $keyfile} open --type luks $crypttab_opt '$src' '$dst'"
++			verbose "+ cryptsetup --timeout=120 ${keyfile:+-d $keyfile} open --type luks $crypttab_opt '$src' '$dst'"
+ 			add_linuxrc <<-EOF
+ 			debugshell
+ 
+@@ -184,7 +184,7 @@ luks_crypttab() {
+ 				crypt_status=\$(cryptsetup \$cryptsetup_opt status '$dst')
+ 				if [ "\${crypt_status%%is inactive.}" != "\$crypt_status" ]; then
+ 					# is inactive
+-					cryptsetup \$cryptsetup_opt ${keyfile:+-d $keyfile} open --type luks $crypttab_opt "\$luksdev" '$dst' <&1
++					cryptsetup \$cryptsetup_opt ${keyfile:+-d $keyfile} --timeout 120 open --type luks $crypttab_opt "\$luksdev" '$dst' <&1
+ 				fi
+ 			fi
+ 
+
+commit 7e3c63ed836b899d5217506e408b35284b6a00bc
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Jun 7 16:52:17 2016 +0200
+
+    Also mount /run as noexec,nosuid,nodev (as suggested by qboosh).
+
+diff --git a/geninitrd b/geninitrd
+index 62e47ee..e94ca12 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -273,7 +273,7 @@ mount_run() {
+ 	fi
+ 
+ 	run_mounted=yes
+-	echo "mount -t tmpfs run /run -o mode=0755" | add_linuxrc
++	echo "mount -t tmpfs run /run -o mode=0755,noexec,nosuid,nodev" | add_linuxrc
+ }
+ 
+ # unmount all mountpoints mounted by geninitrd
+
+commit b13c409df04d048f45d246603a779e39f2fed2b4
+Author: Elan Ruusamäe <glen@delfi.ee>
+Date:   Wed Jun 29 22:48:43 2016 +0300
+
+    accept rootfs= kernel commandline argument
+
+diff --git a/geninitrd b/geninitrd
+index e94ca12..432999c 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -1580,6 +1580,9 @@ add_linuxrc <<-'EOF'
+ 		if [ "${arg##root=}" != "${arg}" ]; then
+ 			ROOT=${arg##root=}
+ 		fi
++		if [ "${arg##rootfs=}" != "${arg}" ]; then
++			ROOTFS=${arg##rootfs=}
++		fi
+ 		if [ "${arg##rootflags=}" != "${arg}" ]; then
+ 			ROOTFLAGS=${arg##rootflags=}
+ 		fi
+
+commit 16e8a388f3184e59475429cf3fb7e69dd281045d
+Author: Elan Ruusamäe <glen@delfi.ee>
+Date:   Wed Jun 29 22:55:58 2016 +0300
+
+    use git-for-each-ref to find last tag
+    
+    omits two commands from pipeline
+
+diff --git a/make-tag.sh b/make-tag.sh
+index 6f54325..87aba64 100755
+--- a/make-tag.sh
++++ b/make-tag.sh
+@@ -1,7 +1,8 @@
+ #!/bin/sh
+ set -e
+ rev=$(git rev-parse HEAD)
+-last_tag=$(git tag -l | grep -E '^[0-9]+' | sort -V | tail -n1)
++ref=$(git for-each-ref 'refs/tags' --format='%(refname)' --sort=taggerdate | tail -n1)
++last_tag=${ref#refs/tags/}
+ 
+ if [ -n "$1" ]; then
+ 	tag="$1"
+
+commit ce3a6bd6821fad3e6e60fb35a8153f95128e7160
+Author: Elan Ruusamäe <glen@delfi.ee>
+Date:   Wed Jun 29 22:58:16 2016 +0300
+
+    git tag -l
+    
+    "git tags" was my local alias i didn't even realize it's not git builtin :)
+
+diff --git a/RELEASE b/RELEASE
+index 4f71b51..3c7639a 100644
+--- a/RELEASE
++++ b/RELEASE
+@@ -2,7 +2,7 @@ HOW TO MAKE A RELEASE
+ 
+ before making a release:
+ 
+-- run make dist, create package with resulting tarball to check that code is
++- run "make dist", create package with resulting tarball to check that code is
+   stable enough for a release
+ 
+ to make a release:
+@@ -14,7 +14,7 @@ in short:
+ in details:
+ - run 'make tag'
+  - fill git shortlog into annotate tag commit message:
+-   $ git shortlog $(git tags | sort -nr | head -n1)..HEAD
++   $ git shortlog $(git tag -l | sort -nr | head -n1)..HEAD
+ - run 'make dist'
+ - verify produced tarball with updating geninitrd.spec:master
+ - push tarball to distfiles
+
+commit ac6b67a86f7eb4c2d5758920bd9101e863655970
+Author: Tomasz Pala <gotar@pld-linux.org>
+Date:   Sun Aug 14 12:03:51 2016 +0200
+
+    newer platforms use xHCI, newer kernels require PCI over HCD modules
+    https://marc.info/?l=git-commits-head&m=141276811802511&w=2
+
+diff --git a/geninitrd.sysconfig b/geninitrd.sysconfig
+index e141a0a..e88cda5 100644
+--- a/geninitrd.sysconfig
++++ b/geninitrd.sysconfig
+@@ -3,7 +3,7 @@
+ #BASICMODULES="-tuxonice_compress"
+ 
+ ## Basic modules to include USB keyboard
+-#BASICMODULES="usbhid ehci-hcd uhci-hcd ohci-hcd"
++#BASICMODULES="usbhid xhci-pci ehci-pci ehci-hcd uhci-hcd ohci-hcd"
+ 
+ ## Modules that should be loaded before anything (i.e. jbd for ext3)
+ #PREMODS=""
+
+commit 9e77ea77b2359a828325983e58c8a4b39c8b6648
+Author: Tomasz Pala <gotar@pld-linux.org>
+Date:   Sun Aug 14 17:54:37 2016 +0200
+
+    hid-generic required as well
+
+diff --git a/geninitrd.sysconfig b/geninitrd.sysconfig
+index e88cda5..ccf177c 100644
+--- a/geninitrd.sysconfig
++++ b/geninitrd.sysconfig
+@@ -3,7 +3,7 @@
+ #BASICMODULES="-tuxonice_compress"
+ 
+ ## Basic modules to include USB keyboard
+-#BASICMODULES="usbhid xhci-pci ehci-pci ehci-hcd uhci-hcd ohci-hcd"
++#BASICMODULES="hid-generic usbhid xhci-pci ehci-pci ehci-hcd uhci-hcd ohci-hcd"
+ 
+ ## Modules that should be loaded before anything (i.e. jbd for ext3)
+ #PREMODS=""
+
+commit 0d9c261f8a81bbe23bb097ae14002dce0fcaaa41
+Author: Tomasz Pala <gotar@pld-linux.org>
+Date:   Sun Aug 14 20:10:24 2016 +0200
+
+    save precious scrollback buffer contents when data can be fetched later
+
+diff --git a/geninitrd b/geninitrd
+index 432999c..0b838e6 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -992,7 +992,7 @@ initrd_gen_initramfs_switchroot() {
+ 			' /proc/partitions)"
+ 
+ 		if [ -z "$device" ]; then
+-			if [ "$DEBUGINITRD" ]; then
++			if [ "$DEBUGINITRD" -a "$DEBUGINITRD" != 'sh' ]; then
+ 				cat /proc/partitions
+ 			fi
+ 			device=$ROOT
+@@ -1041,7 +1041,7 @@ initrd_gen_initramfs_switchroot() {
+ 	busybox_applet dmesg
+ 	busybox_applet tail
+ 	add_linuxrc <<-'EOF'
+-		if [ "$DEBUGINITRD" ]; then
++		if [ "$DEBUGINITRD" -a "$DEBUGINITRD" != 'sh' ]; then
+ 			echo "Last 20 lines of dmesg:"
+ 			dmesg | tail -n 20
+ 		fi
+
+commit 6ed0f7b1ebdba0a6aaed765e3f4c293ac09f975b
+Author: Tomasz Pala <gotar@pld-linux.org>
+Date:   Sun Aug 14 22:01:15 2016 +0200
+
+    save 19 lines of debug output (debugrd)
+
+diff --git a/geninitrd b/geninitrd
+index 0b838e6..d152eec 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -937,59 +937,40 @@ initrd_gen_initramfs_switchroot() {
+ 	add_linuxrc <<-'EOF'
+ 		device=
+ 		eval "$(busybox awk -v root="$ROOT" '
+-			# http://9fans.net/archive/2006/09/261
+-			function h2d(str, hstr, res, num, n, digit, i) {
+-				hstr = "0123456789abdcef";
+-				res = 0;
++			function h2d(str, hstr, res, num, n, digit, i) {	# http://9fans.net/archive/2006/09/261
++				hstr = "0123456789abdcef"; res = 0;
+ 				n = split(tolower(str), digit, "");
+ 
+ 				for (i = 1; i <= n; i++) {
+ 					num = index(hstr, digit[i]) - 1;
+ 					res = res + (num * 16 ^ (n - i));
+ 				}
+-
+ 				return res;
+ 			}
+ 			BEGIN {
+-
+ 				num_pattern_short = "[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]";
+ 				num_pattern = "[0-9a-fA-F]" num_pattern_short;
+ 				dev_pattern = "[hms][a-z][a-z]([0-9])+";
+-				partition = "";
+-				min = -1; maj = -1;
+-
+-				# see if we have /dev/hdX or hdX, we can just take partition name
+-				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {
+-					partition = root
+-					sub("^/dev/", "", partition);
+-
+-				} else {
+-					# unify values first
+-					if (root ~ "^" num_pattern_short "$")  {
+-						# change "303" => "0x0303"
++				partition = ""; min = -1; maj = -1;
++
++				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {	# see if we have /dev/hdX or hdX, we can just take partition name
++					partition = root; sub("^/dev/", "", partition);
++				} else {	# unify values first
++					if (root ~ "^" num_pattern_short "$")  {	# change "303" => "0x0303"
+ 						root = "0x0" root
+-					} else if (root ~ "^" num_pattern "$")  {
+-						# change "0303" => "0x0303"
++					} else if (root ~ "^" num_pattern "$")  {	# change "0303" => "0x0303"
+ 						root = "0x" root
+ 					}
+-
+ 					maj = h2d(substr(root, 3, 2));
+ 					min = h2d(substr(root, 5, 2));
+ 				}
+ 			}
+-
+ 			partition && $4 == partition { maj = $1; min = $2; }
+ 			$1 == maj && $2 == min { partition = $4; }
+-
+ 			END {
+-				if (maj >= 0 && min >= 0) {
+-					printf("maj=%s; min=%s;\n", maj, min);
+-				}
+-				if (partition) {
+-					printf("device=/dev/%s;\n", partition);
+-				}
+-			}
+-			' /proc/partitions)"
++				if (maj >= 0 && min >= 0) {	printf("maj=%s; min=%s;\n", maj, min);	}
++				if (partition) {		printf("device=/dev/%s;\n", partition);	}
++			}' /proc/partitions)"
+ 
+ 		if [ -z "$device" ]; then
+ 			if [ "$DEBUGINITRD" -a "$DEBUGINITRD" != 'sh' ]; then
+
+commit 9d45e9b492b0114bf5a536918b5ca511e8c5dcef
+Author: Elan Ruusamäe <glen@delfi.ee>
+Date:   Mon Aug 15 23:43:06 2016 +0300
+
+    revert bogus commit
+    
+    no actual change recorded, instead some formatting fuckup
+    
+    Revert "save 19 lines of debug output (debugrd)"
+    
+    This reverts commit 6ed0f7b1ebdba0a6aaed765e3f4c293ac09f975b.
+
+diff --git a/geninitrd b/geninitrd
+index d152eec..0b838e6 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -937,40 +937,59 @@ initrd_gen_initramfs_switchroot() {
+ 	add_linuxrc <<-'EOF'
+ 		device=
+ 		eval "$(busybox awk -v root="$ROOT" '
+-			function h2d(str, hstr, res, num, n, digit, i) {	# http://9fans.net/archive/2006/09/261
+-				hstr = "0123456789abdcef"; res = 0;
++			# http://9fans.net/archive/2006/09/261
++			function h2d(str, hstr, res, num, n, digit, i) {
++				hstr = "0123456789abdcef";
++				res = 0;
+ 				n = split(tolower(str), digit, "");
+ 
+ 				for (i = 1; i <= n; i++) {
+ 					num = index(hstr, digit[i]) - 1;
+ 					res = res + (num * 16 ^ (n - i));
+ 				}
++
+ 				return res;
+ 			}
+ 			BEGIN {
++
+ 				num_pattern_short = "[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]";
+ 				num_pattern = "[0-9a-fA-F]" num_pattern_short;
+ 				dev_pattern = "[hms][a-z][a-z]([0-9])+";
+-				partition = ""; min = -1; maj = -1;
+-
+-				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {	# see if we have /dev/hdX or hdX, we can just take partition name
+-					partition = root; sub("^/dev/", "", partition);
+-				} else {	# unify values first
+-					if (root ~ "^" num_pattern_short "$")  {	# change "303" => "0x0303"
++				partition = "";
++				min = -1; maj = -1;
++
++				# see if we have /dev/hdX or hdX, we can just take partition name
++				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {
++					partition = root
++					sub("^/dev/", "", partition);
++
++				} else {
++					# unify values first
++					if (root ~ "^" num_pattern_short "$")  {
++						# change "303" => "0x0303"
+ 						root = "0x0" root
+-					} else if (root ~ "^" num_pattern "$")  {	# change "0303" => "0x0303"
++					} else if (root ~ "^" num_pattern "$")  {
++						# change "0303" => "0x0303"
+ 						root = "0x" root
+ 					}
++
+ 					maj = h2d(substr(root, 3, 2));
+ 					min = h2d(substr(root, 5, 2));
+ 				}
+ 			}
++
+ 			partition && $4 == partition { maj = $1; min = $2; }
+ 			$1 == maj && $2 == min { partition = $4; }
++
+ 			END {
+-				if (maj >= 0 && min >= 0) {	printf("maj=%s; min=%s;\n", maj, min);	}
+-				if (partition) {		printf("device=/dev/%s;\n", partition);	}
+-			}' /proc/partitions)"
++				if (maj >= 0 && min >= 0) {
++					printf("maj=%s; min=%s;\n", maj, min);
++				}
++				if (partition) {
++					printf("device=/dev/%s;\n", partition);
++				}
++			}
++			' /proc/partitions)"
+ 
+ 		if [ -z "$device" ]; then
+ 			if [ "$DEBUGINITRD" -a "$DEBUGINITRD" != 'sh' ]; then
+
+commit 512f35991fc4b3f9c12469094f6c52c56e0309dd
+Author: Tomasz Pala <gotar@pld-linux.org>
+Date:   Mon Aug 29 19:31:57 2016 +0200
+
+    Revert "revert bogus commit"
+    
+    This 'formatting fuckup' was the point for saving scrollback buffer.
+    As you probably don't put it together, issuing debuginitrd throws all that function
+    contents to your face during boot.
+    
+    This reverts commit 9d45e9b492b0114bf5a536918b5ca511e8c5dcef.
+
+diff --git a/geninitrd b/geninitrd
+index 0b838e6..d152eec 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -937,59 +937,40 @@ initrd_gen_initramfs_switchroot() {
+ 	add_linuxrc <<-'EOF'
+ 		device=
+ 		eval "$(busybox awk -v root="$ROOT" '
+-			# http://9fans.net/archive/2006/09/261
+-			function h2d(str, hstr, res, num, n, digit, i) {
+-				hstr = "0123456789abdcef";
+-				res = 0;
++			function h2d(str, hstr, res, num, n, digit, i) {	# http://9fans.net/archive/2006/09/261
++				hstr = "0123456789abdcef"; res = 0;
+ 				n = split(tolower(str), digit, "");
+ 
+ 				for (i = 1; i <= n; i++) {
+ 					num = index(hstr, digit[i]) - 1;
+ 					res = res + (num * 16 ^ (n - i));
+ 				}
+-
+ 				return res;
+ 			}
+ 			BEGIN {
+-
+ 				num_pattern_short = "[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]";
+ 				num_pattern = "[0-9a-fA-F]" num_pattern_short;
+ 				dev_pattern = "[hms][a-z][a-z]([0-9])+";
+-				partition = "";
+-				min = -1; maj = -1;
+-
+-				# see if we have /dev/hdX or hdX, we can just take partition name
+-				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {
+-					partition = root
+-					sub("^/dev/", "", partition);
+-
+-				} else {
+-					# unify values first
+-					if (root ~ "^" num_pattern_short "$")  {
+-						# change "303" => "0x0303"
++				partition = ""; min = -1; maj = -1;
++
++				if (root ~ "^\/dev\/" dev_pattern "$" || root ~ "^" dev_pattern "$") {	# see if we have /dev/hdX or hdX, we can just take partition name
++					partition = root; sub("^/dev/", "", partition);
++				} else {	# unify values first
++					if (root ~ "^" num_pattern_short "$")  {	# change "303" => "0x0303"
+ 						root = "0x0" root
+-					} else if (root ~ "^" num_pattern "$")  {
+-						# change "0303" => "0x0303"
++					} else if (root ~ "^" num_pattern "$")  {	# change "0303" => "0x0303"
+ 						root = "0x" root
+ 					}
+-
+ 					maj = h2d(substr(root, 3, 2));
+ 					min = h2d(substr(root, 5, 2));
+ 				}
+ 			}
+-
+ 			partition && $4 == partition { maj = $1; min = $2; }
+ 			$1 == maj && $2 == min { partition = $4; }
+-
+ 			END {
+-				if (maj >= 0 && min >= 0) {
+-					printf("maj=%s; min=%s;\n", maj, min);
+-				}
+-				if (partition) {
+-					printf("device=/dev/%s;\n", partition);
+-				}
+-			}
+-			' /proc/partitions)"
++				if (maj >= 0 && min >= 0) {	printf("maj=%s; min=%s;\n", maj, min);	}
++				if (partition) {		printf("device=/dev/%s;\n", partition);	}
++			}' /proc/partitions)"
+ 
+ 		if [ -z "$device" ]; then
+ 			if [ "$DEBUGINITRD" -a "$DEBUGINITRD" != 'sh' ]; then
+
+commit dfc0f1befd64d2c3864d5a279110d76bb680d1c2
+Author: Tomasz Pala <gotar@pld-linux.org>
+Date:   Mon Aug 29 22:32:32 2016 +0200
+
+    warn about btrfs not fully supported by geninitrd
+    
+    Before mounting multidevice btrfs filesystem, `btrfs device scan' needs to
+    be executed, otherwise filesystem won't mount. Without the btrfs binary,
+    one might instruct kernel in command line insted, but this is also not
+    supported (blkid finds single device only). Since there is dracut, just
+    notice user about this shortcoming, so he could properly configure
+    bootloader by manually appending appropriate devices when needed.
+
+diff --git a/geninitrd b/geninitrd
+index d152eec..1649787 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -432,6 +432,7 @@ find_depmod() {
+ 			smodule=$(basename_module $modpath)
+ 			case "$smodule" in
+ 				btrfs)
++					warn "mounting multidevice btrfs volume requires rootfsflags=device=/dev/...,device=/dev/... kernel option"
+ 					find_depmod "-libcrc32c"
+ 					;;
+ 				crc-t10dif)
+
+commit 60086bea663782db0e65205f248683620f7ece5f
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Mon Nov 13 10:29:41 2017 +0100
+
+    Add support for zstd(.spec) compression.
+
+diff --git a/geninitrd b/geninitrd
+index 1649787..0a18298 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -46,7 +46,7 @@ proc_partitions=no
+ usage() {
+ 	echo "Usage: $PROGRAM [--version] [-v] [-f] [--ifneeded] [--preload <module>]"
+ 	echo "       [--with=<module>] [--image-version] [--fstab=<fstab>] [--nocompress]"
+-	echo "       [--compress=yes|xz|lzma|bzip2|gzip|lzo]"
++	echo "       [--compress=yes|zstd|xz|lzma|bzip2|gzip|lzo]"
+ 	echo "       [--nostrip ] [--strip PATH/strip] [--strip=PATH/strip]"
+ 	echo "       [--initrdfs=rom|initramfs|ext2|cram] [--modules-conf=<modules.conf>]"
+ 	echo "       [--with-bootsplash] [--without-bootsplash]"
+@@ -1089,7 +1089,7 @@ sym_exists() {
+ # find best compressor (or forced one) for initrd
+ find_compressor() {
+ 	local mode="$1"
+-	local compressors='xz lzma bzip2 gzip lzo'
++	local compressors='zstd xz lzma bzip2 gzip lzo'
+ 
+ 	# a specified one, take it
+ 	if ! is_yes "$mode"; then
+@@ -1121,6 +1121,10 @@ find_compressor() {
+ 			sym=unlzo
+ 			prog=/usr/bin/lzop
+ 			;;
++		zstd)
++			sym=zstd
++			prog=/usr/bin/zstd
++			;;
+ 		none|no)
+ 			# any existing sym will work
+ 			sym=initrd_load
+@@ -1163,6 +1167,9 @@ compress_image() {
+ 	lzo)
+ 		lzop -9 < "$IMAGE" > "$tmp" || return $?
+ 		;;
++	zstd)
++		zstd -9 < "$IMAGE" > "$tmp" || return $?
++		;;
+ 	none|no)
+ 		cat < "$IMAGE" > "$tmp" || return $?
+ 		;;
+
 commit b5a01dda8ca06f88b1210f806f3ac6da7c0019f0
 Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
 Date:   Fri May 4 15:50:18 2018 +0200
@@ -95,6 +778,7 @@ index 0a18298..c75c22b 100755
  				crc-t10dif)
  					find_depmod "-crct10dif-pclmul"
  					find_depmod "-crct10dif"
+
 commit 256e0bedb591a982ce87fb2ca1b38e1353d5b33a
 Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
 Date:   Fri Aug 10 10:40:59 2018 +0200
@@ -129,3 +813,127 @@ index c75c22b..025674d 100755
  fi
  
  if ! is_no "$COMPRESS"; then
+
+commit 7d4fa91c4a63900ed829b088d2513a60ac764ddd
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Mon Aug 13 22:49:31 2018 +0200
+
+    Drop forced luks type as latest tools support luks2, too. Leave it for cryptsetup autodetection.
+
+diff --git a/mod-luks.sh b/mod-luks.sh
+index 8e9bc46..99ff4a6 100644
+--- a/mod-luks.sh
++++ b/mod-luks.sh
+@@ -157,7 +157,7 @@ luks_crypttab() {
+ 			done
+ 			IFS="$old_IFS"
+ 
+-			verbose "+ cryptsetup --timeout=120 ${keyfile:+-d $keyfile} open --type luks $crypttab_opt '$src' '$dst'"
++			verbose "+ cryptsetup --timeout=120 ${keyfile:+-d $keyfile} open $crypttab_opt '$src' '$dst'"
+ 			add_linuxrc <<-EOF
+ 			debugshell
+ 
+@@ -184,7 +184,7 @@ luks_crypttab() {
+ 				crypt_status=\$(cryptsetup \$cryptsetup_opt status '$dst')
+ 				if [ "\${crypt_status%%is inactive.}" != "\$crypt_status" ]; then
+ 					# is inactive
+-					cryptsetup \$cryptsetup_opt ${keyfile:+-d $keyfile} --timeout 120 open --type luks $crypttab_opt "\$luksdev" '$dst' <&1
++					cryptsetup \$cryptsetup_opt ${keyfile:+-d $keyfile} --timeout 120 open $crypttab_opt "\$luksdev" '$dst' <&1
+ 				fi
+ 			fi
+ 
+
+commit 042e65b6bf2018ce17fcc275b0f4da26ef2de2ff
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Aug 14 13:09:55 2018 +0200
+
+    libpthread dlopens libgcc_s.so.1, so install it.
+
+diff --git a/geninitrd b/geninitrd
+index 025674d..50be081 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -538,15 +538,20 @@ inst_exec() {
+ 
+ 	inst "$@" $dest
+ 
+-	local obj lib libs libdir
++	local obj lib libs libs_additional libdir
+ 	for obj in "$@"; do
+ 		case "$obj" in
+ 			/lib/ld-linux.so.2 | /lib64/ld-linux-x86-64.so.2 | /libx32/ld-linux-x32.so.2)
+ 			continue
++			;;
++		    /lib/libpthread.so* | /lib64/libpthread.so* | /libx32/libpthread.so*)
++				libs_additional="${obj%/libpthread*}/libgcc_s.so.1"
++			;;
+ 		esac
+ 
++
+ 		libs=$(ldd "$obj" | awk '/statically|linux-(gate|vdso)\.so/{next} NF == 2 {print $1} /=/{print $3}' | sort -u)
+-		for lib in $libs; do
++		for lib in $libs $libs_additional; do
+ 			libdir=$(cd $(dirname "$lib"); pwd)
+ 			if [ ! -f "$DESTDIR/$lib" ]; then
+ 				inst_d $libdir
+
+commit 99634b923a68cb279eae5fd72286dcb9e52f8f25
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Aug 14 13:32:41 2018 +0200
+
+    cryptsetup needs /var/run/cryptsetup dir.
+
+diff --git a/mod-luks.sh b/mod-luks.sh
+index 99ff4a6..4a93aa7 100644
+--- a/mod-luks.sh
++++ b/mod-luks.sh
+@@ -89,6 +89,7 @@ initrd_gen_luks() {
+ 
+ 	inst_d /bin
+ 	inst_exec $cryptsetup /bin/cryptsetup
++	inst_d /var/run/cryptsetup
+ 
+ 	mount_dev
+ 	mount_sys
+
+commit 32b9509df0d88c0814a0dfef2465a46ade008b28
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Aug 14 13:57:58 2018 +0200
+
+    Include more modules for luks. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=809686#10
+
+diff --git a/mod-luks.sh b/mod-luks.sh
+index 4a93aa7..9fbf583 100644
+--- a/mod-luks.sh
++++ b/mod-luks.sh
+@@ -67,6 +67,10 @@ find_modules_luks() {
+ 	# TODO: autodetect
+ 	find_module "aes"
+ 	find_module "cbc"
++	find_module "-af-alg"
++	find_module "-algif_hash"
++	find_module "-algif_skcipher"
++	find_module "-loop"
+ 
+ 	# recurse
+ 	dev=$(awk -vLUKSNAME="$LUKSNAME" '$1 == LUKSNAME { print $2 }' /etc/crypttab)
+
+commit 4fa03792dc42a77bfa98449828c87b3d23fd0a17
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Aug 14 14:08:52 2018 +0200
+
+    Fix condition for --debug mode which adds additional text after 'inactive' text.
+
+diff --git a/mod-luks.sh b/mod-luks.sh
+index 9fbf583..ff877f7 100644
+--- a/mod-luks.sh
++++ b/mod-luks.sh
+@@ -187,7 +187,7 @@ luks_crypttab() {
+ 
+ 			if [ -e "\$luksdev" ]; then
+ 				crypt_status=\$(cryptsetup \$cryptsetup_opt status '$dst')
+-				if [ "\${crypt_status%%is inactive.}" != "\$crypt_status" ]; then
++				if [ "\${crypt_status%%is inactive*}" != "\$crypt_status" ]; then
+ 					# is inactive
+ 					cryptsetup \$cryptsetup_opt ${keyfile:+-d $keyfile} --timeout 120 open $crypttab_opt "\$luksdev" '$dst' <&1
+ 				fi
