@@ -1,1 +1,120 @@
-; nothing here for now
+commit 33cc4751b8f80fc3b800928b9ad93866b2569915
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Dec 18 14:33:12 2018 +0100
+
+    Install blkid in /sbin because udevd expects it to be there.
+
+diff --git a/geninitrd b/geninitrd
+index a79b9c3..118333c 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -1530,7 +1530,7 @@ chmod a+rx "$RCFILE"
+ ln -s linuxrc $DESTDIR/init
+ 
+ # create dirs that we really need
+-inst_d /{lib,bin,etc,dev{,/pts,/shm},loopfs,var,proc,run,sys,tmp}
++inst_d /{lib,bin,sbin,etc,dev{,/pts,/shm},loopfs,var,proc,run,sys,tmp}
+ 
+ modules_install "$MODULES"
+ 
+diff --git a/mod-blkid.sh b/mod-blkid.sh
+index 8ee2a48..92df9ae 100644
+--- a/mod-blkid.sh
++++ b/mod-blkid.sh
+@@ -22,12 +22,12 @@ initrd_gen_blkid() {
+ 	fi
+ 	verbose "Adding BLKID support to initrd"
+ 
+-	inst_exec $blkid /bin/blkid
++	inst_exec $blkid /sbin/blkid
+ 	initrd_gen_devices
+ 	add_linuxrc <<-'EOF'
+ 		# if built with blkid change ROOT=LABEL=something into ROOT=/dev/device parsed by blkid
+ 		if [ "${ROOT##LABEL=}" != "${ROOT}" -o "${ROOT##UUID=}" != "${ROOT}" ]; then
+-			blkid="$(/bin/blkid -t $ROOT -o device -l)"
++			blkid="$(/sbin/blkid -t $ROOT -o device -l)"
+ 			if [ -n "$blkid" ]; then
+ 				ROOT=$blkid
+ 			fi
+
+commit dc5ca733ed6fe57dfa39d4598a6586069e41d0b0
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Dec 18 14:34:38 2018 +0100
+
+    Install mdadm in /sbin because udevd expects it to be there.
+
+diff --git a/mod-md.sh b/mod-md.sh
+index 2b6f587..a358517 100644
+--- a/mod-md.sh
++++ b/mod-md.sh
+@@ -133,7 +133,7 @@ initrd_gen_md() {
+ 	fi
+ 	verbose "Setting up mdadm..."
+ 
+-	inst_exec $mdadm /bin/mdadm
++	inst_exec $mdadm /sbin/mdadm
+ 
+ 	echo "DEVICE partitions containers" >> "$DESTDIR/etc/mdadm.conf"
+ 
+@@ -181,7 +181,7 @@ initrd_gen_md() {
+ 
+ 	echo "wait_for_files $cr_dev_list" | add_linuxrc
+ 	add_linuxrc <<-'EOF'
+-	mdadm --assemble --scan
++	/sbin/mdadm --assemble --scan
+ 
+ 	if [ "$DEBUGINITRD" ]; then
+ 		[ -e /proc/mdstat ] && echo "/proc/mdstat contents:" && cat /proc/mdstat
+
+commit 3d81f1cd0bc557ad9a1f157b403f0396866c648c
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Dec 18 14:38:55 2018 +0100
+
+    udevd uses ata_id and scsi_id, so install these.
+
+diff --git a/mod-udev.sh b/mod-udev.sh
+index 422ef3e..a2491ee 100644
+--- a/mod-udev.sh
++++ b/mod-udev.sh
+@@ -41,9 +41,11 @@ setup_mod_udev() {
+ initrd_gen_udev() {
+ 	verbose "Setting up udev..."
+ 
+-	inst_d /sbin /etc/udev
++	inst_d /sbin /etc/udev /lib/udev
+ 	inst_exec $udevd /sbin/udevd
+ 	inst_exec $udevadm /sbin/udevadm
++	inst_exec /lib/udev/ata_id  /lib/udev/ata_id
++	inst_exec /lib/udev/scsi_id /lib/udev/scsi_id
+ 	inst /etc/udev/udev.conf /etc/udev/udev.conf
+ 	# standard udev rules
+ 	inst_rules 50-udev-default.rules 60-persistent-storage.rules 61-persistent-storage-edd.rules 80-drivers.rules 95-udev-late.rules \
+
+commit 21ad0f7980ce6a0135e4a3c37a94472ed4f1320c
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Dec 18 14:43:20 2018 +0100
+
+    Use existing mechanism for installing udev apps but install regular variants, too if initrd-variants don't exist.
+
+diff --git a/mod-udev.sh b/mod-udev.sh
+index a2491ee..87f4b68 100644
+--- a/mod-udev.sh
++++ b/mod-udev.sh
+@@ -44,8 +44,6 @@ initrd_gen_udev() {
+ 	inst_d /sbin /etc/udev /lib/udev
+ 	inst_exec $udevd /sbin/udevd
+ 	inst_exec $udevadm /sbin/udevadm
+-	inst_exec /lib/udev/ata_id  /lib/udev/ata_id
+-	inst_exec /lib/udev/scsi_id /lib/udev/scsi_id
+ 	inst /etc/udev/udev.conf /etc/udev/udev.conf
+ 	# standard udev rules
+ 	inst_rules 50-udev-default.rules 60-persistent-storage.rules 61-persistent-storage-edd.rules 80-drivers.rules 95-udev-late.rules \
+@@ -57,6 +55,8 @@ initrd_gen_udev() {
+ 	for e in ata_id cdrom_id collect firmware scsi_id v4l_id; do
+ 		if [ -e "$initrd_dir/udev/$e" ]; then
+ 			inst_exec $initrd_dir/udev/$e /lib/udev/$e
++		elif [ -e "/lib/udev/$e" ]; then
++			inst_exec /lib/udev/$e /lib/udev/$e
+ 		fi
+ 	done
+ 
