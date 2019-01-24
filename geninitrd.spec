@@ -20,6 +20,7 @@ Requires:	cpio
 Requires:	fileutils
 Requires:	glibc-misc
 Requires:	gzip
+Requires:	libgcc
 Requires:	mktemp >= 1.5-8
 Requires:	mount
 Requires:	pci-database >= 0.4
