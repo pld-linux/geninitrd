@@ -118,3 +118,67 @@ index a2491ee..87f4b68 100644
  		fi
  	done
  
+commit b565e95c147bea4e68e4ccf5ad19906d51d2375b
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Wed May 15 21:04:45 2019 +0200
+
+    Prepend cpu microcode to initrd image, so kernel will pick it up when LILO is in use.
+
+diff --git a/geninitrd b/geninitrd
+index 118333c..b5d405a 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -17,6 +17,7 @@ PROGRAM=${0##*/}
+ # list of geninitrd modules which need setup routine after commandline args parsing
+ GENINITRD_MODS=""
+ COMPRESS=yes
++LILO_MICROCODE=yes
+ STRIP=/usr/bin/strip
+ target=""
+ kernel=""
+@@ -1186,6 +1187,16 @@ compress_image() {
+ 	mv -f "$tmp" "$target"
+ }
+ 
++# prepend file to image
++prepend_file_to_image() {
++	local file="$1" target="$2" tmp
++	tmp=$(mktemp "$target".XXXXXX) || die "mktemp failed"
++
++	cat "$file" "$target" > "$tmp" || return $?
++
++	mv -f "$tmp" "$target"
++}
++
+ if [ -r /etc/sysconfig/geninitrd ]; then
+ 	. /etc/sysconfig/geninitrd
+ fi
+@@ -1801,6 +1812,14 @@ else
+ 	cp -a "$IMAGE" "$target"
+ fi
+ 
++# microcode support for lilo
++if ! is_no "$LILO_MICROCODE"; then
++	if [ -x /sbin/lilo -a -f "/boot/intel-ucode.img" ]; then
++		verbose "Prepending $target with microcode image /boot/intel-ucode.img for LILO"
++		prepend_file_to_image "/boot/intel-ucode.img" "$target"
++	fi
++fi
++
+ # XXX. check if bootsplash can output data to tmp dir not directly to initramfs image.
+ initrd_gen_bootsplash "$target"
+ 
+diff --git a/geninitrd.sysconfig b/geninitrd.sysconfig
+index ccf177c..1268324 100644
+--- a/geninitrd.sysconfig
++++ b/geninitrd.sysconfig
+@@ -18,6 +18,9 @@
+ # Default is to use initramfs for >= 2.5.0.
+ #INITRDFS=initramfs
+ 
++# Should we prepend cpu microcode when lilo is installed
++#LILO_MICROCODE=no
++
+ ## Use udev to create /dev?
+ USE_UDEV=yes
+ 
