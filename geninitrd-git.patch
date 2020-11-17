@@ -339,3 +339,89 @@ index 05e290a..052f553 100755
  }
  
  # find best compressor (or forced one) for initrd
+
+commit b4c7f62cc3963af683b69092fb2f44076d5e3bb3
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Tue Feb 4 22:28:16 2020 +0100
+
+    glibc 2.31 ldd prints 'not a dynamic executable' on stderr, so silence it.
+
+diff --git a/geninitrd b/geninitrd
+index 052f553..e9832ef 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -551,7 +551,7 @@ inst_exec() {
+ 		esac
+ 
+ 
+-		libs=$(ldd "$obj" | awk '/statically|linux-(gate|vdso)\.so/{next} NF == 2 {print $1} /=/{print $3}' | sort -u)
++		libs=$(ldd "$obj" 2> /dev/null | awk '/statically|linux-(gate|vdso)\.so/{next} NF == 2 {print $1} /=/{print $3}' | sort -u)
+ 		for lib in $libs $libs_additional; do
+ 			libdir=$(cd $(dirname "$lib"); pwd)
+ 			if [ ! -f "$DESTDIR/$lib" ]; then
+@@ -566,7 +566,7 @@ inst_exec() {
+ 	for _lib in $(get_libdir LIBDIR); do
+ 		if [ -f $DESTDIR/$_lib/libc.so.0 ]; then
+ 			lib=$DESTDIR/$_lib/libc.so.0
+-			lib=$(ldd "$lib" | awk '/statically|linux-(gate|vdso)\.so/{next} NF == 2 {print $1} /=/{print $3}' | sort -u)
++			lib=$(ldd "$lib" 2> /dev/null | awk '/statically|linux-(gate|vdso)\.so/{next} NF == 2 {print $1} /=/{print $3}' | sort -u)
+ 			libdir=$(cd $(dirname "$lib"); pwd)
+ 			if [ ! -e $DESTDIR$libdir ]; then
+ 				libdir=$(dirname "$libdir")
+
+commit b6efb8e39496d74852f353e5142d5cb076d7540f
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Thu Feb 6 17:34:03 2020 +0100
+
+    Move /run mount to newroot. Always mount run for easier transition to /run hierarchy later.
+
+diff --git a/geninitrd b/geninitrd
+index e9832ef..7f5495f 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -288,8 +288,7 @@ umount_all() {
+ 
+ 	if is_yes "$run_mounted"; then
+ 		add_linuxrc <<-EOF
+-		mount --bind /run /newroot/run
+-		umount /run
++		mount -n --move /run /newroot/run
+ 		EOF
+ 		run_mounted=no
+ 	fi
+@@ -1653,6 +1652,7 @@ EOF
+ 
+ # mount early
+ mount_tmp
++mount_run
+ 
+ modules_add_linuxrc $MODULES
+ 
+
+commit 4335c9501bcb9780d486af197354af2ccb1eae89
+Author: Jan Palus <atler@pld-linux.org>
+Date:   Thu Nov 12 11:46:39 2020 +0100
+
+    don't try to expand pci devices if pci bus is missing
+
+diff --git a/functions b/functions
+index 9015cc3..3a52190 100644
+--- a/functions
++++ b/functions
+@@ -209,10 +209,12 @@ find_modules_by_class_kmod() {
+ 		return
+ 	fi
+ 
+-	for i in $(grep -li "^0x${req_class}" /sys/devices/pci*/*/class); do
+-		j=$(dirname $i)
+-		modaliases="$modaliases $(cat $j/modalias)"
+-	done
++	if ls /sys/devices | grep -q '^pci'; then
++		for i in $(grep -li "^0x${req_class}" /sys/devices/pci*/*/class); do
++			j=$(dirname $i)
++			modaliases="$modaliases $(cat $j/modalias)"
++		done
++	fi
+ 
+ 	if [ -z "$modaliases" ]; then
+ 		return
