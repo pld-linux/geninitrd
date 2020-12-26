@@ -425,3 +425,166 @@ index 9015cc3..3a52190 100644
  
  	if [ -z "$modaliases" ]; then
  		return
+
+commit 152a5bf18b37b825a9b6677153aa5af54df94d7b
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Sat Dec 26 01:03:50 2020 +0100
+
+    - swsusp support from mis@pld-linux
+
+diff --git a/Makefile b/Makefile
+index 1994b97..a9039b1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ # when making release, make sure you do it as RELEASE document describes
+ NAME		:= geninitrd
+ VERSION		:= $(shell test -d .git && git describe --tags || echo git)
+-MODS		:= ide luks multipath dmraid lvm md blkid udev tuxonice suspend fbsplash condecor bootsplash uvesafb nfs sata scsi usbkbd bcache
++MODS		:= ide luks multipath dmraid lvm md blkid udev tuxonice suspend swsusp fbsplash condecor bootsplash uvesafb nfs sata scsi usbkbd bcache
+ FILES_MODS  := $(MODS:%=mod-%.sh)
+ FILES_ADDON := extract-ikconfig
+ FILES_UDEV  := 01-ignore.rules 59-persistent-storage.rules 61-persistent-storage.rules 11-dm.rules
+diff --git a/geninitrd b/geninitrd
+index 7f5495f..ea7d438 100755
+--- a/geninitrd
++++ b/geninitrd
+@@ -1209,7 +1209,7 @@ if [ ! -f /proc/mounts ]; then
+ 	warn "/proc filesystem not mounted, may cause wrong results or failure."
+ fi
+ 
+-geninitrd_load_mods ide luks multipath dmraid lvm md blkid udev tuxonice suspend fbsplash condecor bootsplash uvesafb nfs sata scsi usbkbd bcache
++geninitrd_load_mods ide luks multipath dmraid lvm md blkid udev swsusp tuxonice suspend fbsplash condecor bootsplash uvesafb nfs sata scsi usbkbd bcache
+ 
+ while [ $# -gt 0 ]; do
+ 	case $1 in
+@@ -1245,6 +1245,9 @@ while [ $# -gt 0 ]; do
+ 	--without-fbcondecor)
+ 		FB_CON_DECOR=no
+ 		;;
++	--without-swsusp)
++		USE_SWSUSP=no
++		;;
+ 	--with-suspend)
+ 		USE_SUSPEND=yes
+ 		;;
+@@ -1508,6 +1511,10 @@ if is_yes "$USE_SUSPEND"; then
+ 	find_modules_suspend
+ fi
+ 
++if is_yes "$USE_SWSUSP"; then
++	find_modules_swsusp
++fi
++
+ find_root "$fstab" || exit
+ verbose "Using $rootdev as device for rootfs"
+ 
+@@ -1703,6 +1710,7 @@ initrd_gen_stop_uvesafb
+ # resume after killing local processes
+ initrd_gen_tuxonice
+ initrd_gen_suspend
++initrd_gen_swsusp
+ 
+ # clean up env
+ add_linuxrc <<-'EOF'
+diff --git a/mod-swsusp.sh b/mod-swsusp.sh
+new file mode 100644
+index 0000000..d6ade58
+--- /dev/null
++++ b/mod-swsusp.sh
+@@ -0,0 +1,74 @@
++#!/bin/sh
++# geninitrd mod: swsusp
++#
++USE_SWSUSP=${USE_SWSUSP:-yes}
++
++# resume device
++swap_dev=""
++
++# setup geninitrd module
++# @access	public
++setup_mod_swsusp() {
++    	if ! is_yes "$USE_SWSUSP"; then
++		return
++	fi
++
++	swap_dev="$(awk '/^\/dev\// { print $1 }' /proc/swaps | head -1)"
++	if [ -z "$swap_dev" ]; then
++	    warn "Cannot determine swap device. You may try add specific device to kernel command line"
++	else
++	    verbose "swsusp: will try to resume from swap device $swap_dev"
++	fi
++}
++
++# find modules for for swsusp
++# @access	public
++find_modules_swsusp() {
++    	swap_dev="$(awk '/^\/dev\// { print $1 }' /proc/swaps | head -1)"
++
++	# save state
++	local vgvolumes=$LVM_VGVOLUMES
++	find_modules_for_devpath $swap_dev
++
++	# check for saved state, differenciate between rootfs VG
++	if [ "$LVM_VGVOLUMES" != "$vgvolumes" ]; then
++		# add swap device to LVM_SUSPENDVG
++		LVM_SUSPENDVG="$LVM_SUSPENDVG $LVM_VGVOLUMES"
++		LVM_VGVOLUMES=$vgvolumes
++		verbose "swap device is on LVM"
++	fi
++}
++
++# generate initrd fragment
++# @access	public
++initrd_gen_swsusp() {
++	if ! is_yes "$USE_SWSUSP"; then
++		return
++	fi
++
++	verbose "Setting up swsusp..."
++
++	mkdir -p $DESTDIR${swap_dev%/*}
++	inst $swap_dev $swap_dev
++
++        mount_dev
++	mount_sys
++        echo "swap_dev=$swap_dev" | add_linuxrc
++
++	add_linuxrc <<-'EOF'
++	resume=no
++	for arg in $CMDLINE; do
++		if [ "${arg##resume=/dev/}" != "${arg}" ]; then
++			swap_dev=${arg##resume=}
++			resume=yes
++		elif [ "${arg##resume=}" != "${arg}" ]; then
++			resume=${arg##resume=}
++		fi
++	done
++
++	if [ "$resume" = "yes" ] && [ -n "$swap_dev" ]; then
++	        echo "Resuming from $swap_dev..."
++		echo "$swap_dev" > /sys/power/resume
++	fi
++	EOF
++}
+
+commit 55248df65f545d53bb1cfb56edcf5a699a45f52f
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Sat Dec 26 01:04:09 2020 +0100
+
+    Disable swsusp support when swap device not found.
+
+diff --git a/mod-swsusp.sh b/mod-swsusp.sh
+index d6ade58..9224536 100644
+--- a/mod-swsusp.sh
++++ b/mod-swsusp.sh
+@@ -15,7 +15,8 @@ setup_mod_swsusp() {
+ 
+ 	swap_dev="$(awk '/^\/dev\// { print $1 }' /proc/swaps | head -1)"
+ 	if [ -z "$swap_dev" ]; then
+-	    warn "Cannot determine swap device. You may try add specific device to kernel command line"
++	    warn "Cannot determine swap device. You may try add specific device to kernel command line. Disabling swsusp support."
++	    USE_SWSUSP=no
+ 	else
+ 	    verbose "swsusp: will try to resume from swap device $swap_dev"
+ 	fi
