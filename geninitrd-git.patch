@@ -588,3 +588,24 @@ index d6ade58..9224536 100644
  	else
  	    verbose "swsusp: will try to resume from swap device $swap_dev"
  	fi
+commit 640d6c7b308f0c0535ab0da05797847b2fcbfe69
+Author: Arkadiusz Miśkiewicz <arekm@maven.pl>
+Date:   Sun Aug 22 19:13:09 2021 +0200
+
+    AES/CBC can be built-in (and in PLD 5.13 kernel CBC is built-in).
+
+diff --git a/mod-luks.sh b/mod-luks.sh
+index ffe87cb..25dea8c 100644
+--- a/mod-luks.sh
++++ b/mod-luks.sh
+@@ -65,8 +65,8 @@ find_modules_luks() {
+ 	find_module "dm-crypt"
+ 
+ 	# TODO: autodetect
+-	find_module "aes"
+-	find_module "cbc"
++	find_module "-aes"
++	find_module "-cbc"
+ 	find_module "-af-alg"
+ 	find_module "-algif_hash"
+ 	find_module "-algif_skcipher"
