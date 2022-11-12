@@ -2,7 +2,7 @@ Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
 Version:	12818
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
@@ -36,6 +36,7 @@ Obsoletes:	mkinitrd
 Suggests:	lvm2-initrd
 # without this softraid installations of PLD fail
 Suggests:	mdadm-initrd >= 1.12.0-1
+Conflicts:	busybox-initrd < 1.35.0-3
 Conflicts:	grubby < 5.0.4-3.1
 %else
 Conflicts:	grubby < 6.0.24-3
