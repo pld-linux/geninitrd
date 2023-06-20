@@ -1,12 +1,12 @@
 Summary:	Creates an initial ramdisk image for preloading modules
 Summary(pl.UTF-8):	Narzędzie do tworzenia inicjalnego ramdysku używanego przy starcie systemu
 Name:		geninitrd
-Version:	12818
-Release:	3
+Version:	12821
+Release:	1
 License:	GPL
 Group:		Applications/System
 Source0:	%{name}-%{version}.tar.gz
-# Source0-md5:	2ad3c37b949fb84c30b2724db30ff0d9
+# Source0-md5:	8b4333782f37af8d56ecd3a9d153e164
 Patch0:		%{name}-static-dev.patch
 Patch1:		%{name}-posix-sh.patch
 URL:		http://git.pld-linux.org/?p=projects/geninitrd.git
